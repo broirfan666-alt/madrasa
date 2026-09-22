@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>এডমিন প্যানেল — হামিদুল উলুম মাদ্রাসা</title>
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 :root{
   --bg1:#0f3d3e; --bg2:#1a5c4a; --bg3:#c9a24b;
@@ -90,6 +91,7 @@ body{
     <div class="theme-toggle">
       <div class="tt-btn active" id="lightBtn" onclick="setTheme('light',this)">☀️</div>
       <div class="tt-btn" id="darkBtn" onclick="setTheme('dark',this)">🌙</div>
+      <div class="tt-btn" onclick="doLogout()" style="color:var(--danger);">🚪</div>
     </div>
   </div>
 
@@ -102,6 +104,62 @@ function setTheme(mode,el){
   document.documentElement.setAttribute('data-theme',mode);
   document.querySelectorAll('.theme-toggle .tt-btn').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
+}
+
+// --- Supabase কানেকশন ও এডমিন-অ্যাক্সেস যাচাই ---
+const sb = window.supabase.createClient(
+  'https://fraqjybeoozsqqbbmqem.supabase.co',
+  'sb_publishable_GjIDgcF6NT3p83PLRTLGww_5DDGRiO_'
+);
+
+async function doLogout(){
+  await sb.auth.signOut();
+  location.href = 'index.html';
+}
+
+let allProfiles = [];
+
+async function checkAdminAndLoad(){
+  const {data:{session}} = await sb.auth.getSession();
+  if(!session){ alert('আগে লগইন করুন'); location.href = 'index.html'; return; }
+  const {data:profile, error:pErr} = await sb.from('profiles').select('role').eq('id', session.user.id).single();
+  if(pErr || !profile || profile.role !== 'admin'){
+    alert('এই পেজ শুধু এডমিনদের জন্য');
+    location.href = 'index.html';
+    return;
+  }
+  const {data:profiles, error} = await sb.from('profiles').select('*').order('created_at', {ascending:false});
+  if(!error && profiles){ allProfiles = profiles; }
+  renderOverview();
+  renderUsersTabs();
+}
+checkAdminAndLoad();
+
+function renderOverview(){
+  const el = document.getElementById('studentCount');
+  if(el) el.textContent = allProfiles.filter(p=>p.role==='student').length;
+}
+
+function renderUsersTabs(){
+  const rows = allProfiles.map(p=>
+    `<div class="row"><span>${p.full_name || '(নাম নেই)'} — ${p.phone || p.email || ''}</span>
+      <span class="pill ${p.role==='admin' ? 'paid':'pending'}">${p.role==='admin'?'এডমিন':'ছাত্র'}</span></div>`
+  ).join('') || '<div class="note">এখনো কোনো ইউজার সাইনআপ করেনি।</div>';
+  panels.students = `
+    <div class="panel glass">
+      <h3>ছাত্র/ইউজার তালিকা (মোট ${allProfiles.length} জন)</h3>
+      ${rows}
+    </div>`;
+  panels.users = `
+    <div class="panel glass">
+      <h3>ইউজার ব্যবস্থাপনা</h3>
+      ${rows}
+      <div class="note">পাসওয়ার্ড রিসেট এখনো এখান থেকে করা যায় না — Supabase Dashboard → Authentication → Users থেকে ম্যানুয়ালি করা যাবে।</div>
+    </div>`;
+  const activeTab = document.querySelector('.tab-chip.active');
+  if(activeTab && (activeTab.dataset.tab==='students' || activeTab.dataset.tab==='users')){
+    document.getElementById('panels').innerHTML = panels[activeTab.dataset.tab];
+  }
 }
 
 const tabs = [
@@ -123,7 +181,7 @@ const panels = {
 overview:`
   <div class="panel glass">
     <div class="stat-grid">
-      <div class="stat glass"><b>312</b><span>মোট ছাত্র</span></div>
+      <div class="stat glass"><b id="studentCount">0</b><span>মোট ছাত্র</span></div>
       <div class="stat glass"><b>14</b><span>নতুন আবেদন (অপেক্ষমান)</span></div>
       <div class="stat glass"><b>৮৯%</b><span>এ মাসের বেতন আদায়</span></div>
       <div class="stat glass"><b>৬</b><span>বিভাগ</span></div>
