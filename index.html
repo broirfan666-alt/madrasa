@@ -205,12 +205,21 @@ const sb = window.supabase.createClient(
   'sb_publishable_GjIDgcF6NT3p83PLRTLGww_5DDGRiO_'
 );
 
+// মোবাইল নম্বরকে Supabase Auth-এর জন্য একটা internal ইমেইলে রূপান্তর করে (OTP ছাড়া, পাসওয়ার্ড-ভিত্তিক লগইন)
+function phoneToInternalEmail(phone){
+  const digits = phone.replace(/[^0-9]/g, ''); // শুধু সংখ্যা রাখা
+  return digits + '@madrasa.local';
+}
+function isPhoneNumber(identifier){
+  return !identifier.includes('@');
+}
+
 async function doLogin(){
   const identifier = document.getElementById('loginInput').value.trim();
   const password = document.getElementById('loginPassword').value;
   if(!identifier || !password){ alert('মোবাইল/ইমেইল ও পাসওয়ার্ড দিন'); return; }
-  if(!identifier.includes('@')){ alert('মোবাইল নম্বর দিয়ে লগইন এখনো চালু হয়নি (SMS সার্ভিস লাগবে), আপাতত ইমেইল দিয়ে লগইন করুন।'); return; }
-  const {error} = await sb.auth.signInWithPassword({email: identifier, password});
+  const email = isPhoneNumber(identifier) ? phoneToInternalEmail(identifier) : identifier;
+  const {error} = await sb.auth.signInWithPassword({email, password});
   if(error){ alert('লগইন ব্যর্থ: ' + error.message); return; }
   showDash();
   loadProfile();
@@ -223,11 +232,14 @@ async function doSignup(){
   const confirm = document.getElementById('signupConfirm').value;
   if(!name || !identifier || !password){ alert('সব ফিল্ড পূরণ করুন'); return; }
   if(password !== confirm){ alert('পাসওয়ার্ড মিলছে না'); return; }
-  if(!identifier.includes('@')){ alert('মোবাইল নম্বর দিয়ে সাইনআপ এখনো চালু হয়নি, আপাতত ইমেইল দিয়ে অ্যাকাউন্ট তৈরি করুন।'); return; }
-  const {data, error} = await sb.auth.signUp({email: identifier, password});
+  const usingPhone = isPhoneNumber(identifier);
+  const email = usingPhone ? phoneToInternalEmail(identifier) : identifier;
+  const {data, error} = await sb.auth.signUp({email, password});
   if(error){ alert('অ্যাকাউন্ট তৈরি ব্যর্থ: ' + error.message); return; }
   if(data.user){
-    await sb.from('profiles').insert({id: data.user.id, full_name: name, email: identifier, role: 'student'});
+    const profileRow = { id: data.user.id, full_name: name, role: 'student' };
+    if(usingPhone){ profileRow.phone = identifier; } else { profileRow.email = identifier; }
+    await sb.from('profiles').insert(profileRow);
   }
   alert('অ্যাকাউন্ট তৈরি হয়েছে! এখন লগইন করুন।');
   toggleForm('login');
