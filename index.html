@@ -185,6 +185,7 @@ body{
     <div class="tab active" id="lightBtn" onclick="setTheme('light',this)">☀️ লাইট</div>
     <div class="tab" id="darkBtn" onclick="setTheme('dark',this)">🌙 ডার্ক</div>
   </div>
+  <div class="drawer-item" onclick="doLogout()" style="margin-top:14px;color:#ff6b6b;">🚪 লগআউট</div>
 </div>
 
 <!-- PROFILE -->
@@ -243,6 +244,11 @@ async function doSignup(){
   }
   alert('অ্যাকাউন্ট তৈরি হয়েছে! এখন লগইন করুন।');
   toggleForm('login');
+}
+
+async function doLogout(){
+  await sb.auth.signOut();
+  location.reload();
 }
 
 async function loadProfile(){
