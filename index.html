@@ -204,12 +204,40 @@ const sb = window.supabase.createClient(
 );
 
 const items=["নিয়ম কানুন","ভর্তি আবেদন","মাসিক বেতন","অভিযোগ কেন্দ্র","মোট ছাত্র সংখ্যা","বিভাগীয় ছাত্র","জরুরী নোটিশ","পরীক্ষার ফলাফল"];
-document.getElementById('cardGrid').innerHTML = items.map(t=>`<div class="card-btn glass">${t}</div>`).join('');
+
+// প্রতিটা কার্ড বাটনে ক্লিক করলে কী হবে — লেবেলের সাথে মিলিয়ে
+function handleCardClick(label){
+  if(label.includes('ভর্তি')){ location.href = 'admission.html'; return; }
+  if(label.includes('অভিযোগ')){ location.href = 'complaint.html'; return; }
+  if(label.includes('নোটিশ')){ showNoticeBoard(); return; }
+  if(label.includes('বেতন')){ showMyFees(); return; }
+  if(label.includes('নিয়ম')){ alert('📜 নিয়ম-কানুন\n\n১) নিয়মিত ক্লাসে উপস্থিত থাকতে হবে।\n২) মাসিক বেতন প্রতি মাসের ৫ তারিখের মধ্যে পরিশোধ করতে হবে।\n৩) মাদ্রাসার পরিবেশ পরিষ্কার-পরিচ্ছন্ন রাখতে সবাইকে সহযোগিতা করতে হবে।\n৪) শিক্ষকদের নির্দেশনা মেনে চলতে হবে।\n৫) কোনো সমস্যা হলে "অভিযোগ কেন্দ্র"-এ জানানো যাবে।\n\n(এডমিন চাইলে এই নিয়মগুলো Supabase-এ যোগ করে আরও বিস্তারিতভাবে পরিচালনা করতে পারবেন)'); return; }
+  if(label.includes('ছাত্র সংখ্যা') || label.includes('বিভাগীয়')){ alert('এই পরিসংখ্যান শীঘ্রই এখানে দেখানো হবে।'); return; }
+  if(label.includes('ফলাফল')){ alert('পরীক্ষার ফলাফল প্রকাশিত হলে এখানে দেখা যাবে।'); return; }
+  alert(label);
+}
+
+async function showMyFees(){
+  const {data:{session}} = await sb.auth.getSession();
+  if(!session){ alert('লগইন করুন'); return; }
+  const {data, error} = await sb.from('fees').select('*').eq('student_id', session.user.id).order('paid_at',{ascending:false});
+  if(error){ alert('লোড করতে সমস্যা হয়েছে'); return; }
+  if(!data || data.length===0){ alert('এখনো আপনার কোনো বেতন এন্ট্রি নেই।'); return; }
+  const text = data.map(f=>`${f.month} — ৳${f.amount} — ${f.status==='paid'?'পরিশোধিত ✅':'বাকি ⏳'}`).join('\n');
+  alert('💰 মাসিক বেতন\n\n'+text);
+}
+
+function renderCards(list){
+  document.getElementById('cardGrid').innerHTML = list.map(t=>
+    `<div class="card-btn glass" onclick="handleCardClick('${t.replace(/'/g,"\\'")}')">${t}</div>`
+  ).join('');
+}
+renderCards(items);
 
 async function loadDashboardCards(){
   const {data, error} = await sb.from('dashboard_items').select('*').order('sort_order',{ascending:true});
   if(!error && data && data.length>0){
-    document.getElementById('cardGrid').innerHTML = data.map(d=>`<div class="card-btn glass">${d.label}</div>`).join('');
+    renderCards(data.map(d=>d.label));
   }
 }
 loadDashboardCards();
