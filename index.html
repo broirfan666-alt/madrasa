@@ -179,7 +179,7 @@ body{
     <div class="sub-item">📞 হোয়াটসঅ্যাপ</div>
     <div class="sub-item">☎️ কল</div>
   </div>
-  <div class="drawer-item">📢 নোটিশ বোর্ড</div>
+  <div class="drawer-item" onclick="showNoticeBoard()">📢 নোটিশ বোর্ড</div>
   <div class="drawer-item">ℹ️ মাদ্রাসা সম্পর্কে</div>
   <div class="toggle-row">
     <div class="tab active" id="lightBtn" onclick="setTheme('light',this)">☀️ লাইট</div>
@@ -198,13 +198,28 @@ body{
 </div>
 
 <script>
-const items=["নিয়ম কানুন","ভর্তি আবেদন","মাসিক বেতন","অভিযোগ কেন্দ্র","মোট ছাত্র সংখ্যা","বিভাগীয় ছাত্র","জরুরী নোটিশ","পরীক্ষার ফলাফল"];
-document.getElementById('cardGrid').innerHTML = items.map(t=>`<div class="card-btn glass">${t}</div>`).join('');
-
 const sb = window.supabase.createClient(
   'https://fraqjybeoozsqqbbmqem.supabase.co',
   'sb_publishable_GjIDgcF6NT3p83PLRTLGww_5DDGRiO_'
 );
+
+const items=["নিয়ম কানুন","ভর্তি আবেদন","মাসিক বেতন","অভিযোগ কেন্দ্র","মোট ছাত্র সংখ্যা","বিভাগীয় ছাত্র","জরুরী নোটিশ","পরীক্ষার ফলাফল"];
+document.getElementById('cardGrid').innerHTML = items.map(t=>`<div class="card-btn glass">${t}</div>`).join('');
+
+async function loadDashboardCards(){
+  const {data, error} = await sb.from('dashboard_items').select('*').order('sort_order',{ascending:true});
+  if(!error && data && data.length>0){
+    document.getElementById('cardGrid').innerHTML = data.map(d=>`<div class="card-btn glass">${d.label}</div>`).join('');
+  }
+}
+loadDashboardCards();
+
+async function showNoticeBoard(){
+  const {data, error} = await sb.from('notices').select('*').order('created_at',{ascending:false});
+  if(error || !data || data.length===0){ alert('এখনো কোনো নোটিশ প্রকাশ হয়নি।'); return; }
+  const text = data.map(n=>`• ${n.title}${n.body?' — '+n.body:''}`).join('\n\n');
+  alert(text);
+}
 
 // মোবাইল নম্বরকে Supabase Auth-এর জন্য একটা internal ইমেইলে রূপান্তর করে (OTP ছাড়া, পাসওয়ার্ড-ভিত্তিক লগইন)
 function phoneToInternalEmail(phone){

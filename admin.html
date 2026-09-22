@@ -130,14 +130,17 @@ async function checkAdminAndLoad(){
   }
   const {data:profiles, error} = await sb.from('profiles').select('*').order('created_at', {ascending:false});
   if(!error && profiles){ allProfiles = profiles; }
-  renderOverview();
+  const {data:pendingAdm} = await sb.from('admissions').select('id',{count:'exact',head:false}).eq('status','pending');
+  renderOverview(pendingAdm ? pendingAdm.length : 0);
   renderUsersTabs();
 }
 checkAdminAndLoad();
 
-function renderOverview(){
+function renderOverview(pendingCount){
   const el = document.getElementById('studentCount');
   if(el) el.textContent = allProfiles.filter(p=>p.role==='student').length;
+  const pEl = document.getElementById('pendingAdmCount');
+  if(pEl && typeof pendingCount==='number') pEl.textContent = pendingCount;
 }
 
 function renderUsersTabs(){
@@ -182,7 +185,7 @@ overview:`
   <div class="panel glass">
     <div class="stat-grid">
       <div class="stat glass"><b id="studentCount">0</b><span>মোট ছাত্র</span></div>
-      <div class="stat glass"><b>14</b><span>নতুন আবেদন (অপেক্ষমান)</span></div>
+      <div class="stat glass"><b id="pendingAdmCount">0</b><span>নতুন আবেদন (অপেক্ষমান)</span></div>
       <div class="stat glass"><b>৮৯%</b><span>এ মাসের বেতন আদায়</span></div>
       <div class="stat glass"><b>৬</b><span>বিভাগ</span></div>
     </div>
@@ -195,85 +198,215 @@ overview:`
 admissions:`
   <div class="panel glass">
     <h3>ভর্তি আবেদনসমূহ</h3>
-    <div class="row"><span>রাকিব হাসান — ৫ম শ্রেণি</span><span class="pill pending">অপেক্ষমান</span></div>
-    <div class="row"><span>তাসনিম আক্তার — হিফজ বিভাগ</span><span class="pill pending">অপেক্ষমান</span></div>
-    <div class="row"><span>আব্দুল্লাহ — ৩য় শ্রেণি</span><span class="pill paid">অনুমোদিত</span></div>
+    <div id="admissionsList">লোড হচ্ছে...</div>
     <div class="note">প্রতিটি আবেদনে ছাত্রের জন্ম নিবন্ধন ও পাসপোর্ট সাইজ ছবি সংযুক্ত থাকবে — এডমিন চাইলে অনুমোদন বা বাতিল করতে পারবেন।</div>
   </div>`,
 
 fees:`
   <div class="panel glass">
-    <h3>বেতন ব্যবস্থাপনা</h3>
-    <div class="row"><span>রাকিব হাসান — সেপ্টেম্বর</span><span class="pill paid">পরিশোধিত (বিকাশ)</span></div>
-    <div class="row"><span>তাসনিম আক্তার — সেপ্টেম্বর</span><span class="pill pending">বাকি</span></div>
-    <div class="row"><span>আব্দুল্লাহ — সেপ্টেম্বর</span><span class="pill paid">পরিশোধিত (নগদ)</span></div>
-    <div class="note">এডমিন এখান থেকে ম্যানুয়ালি "পরিশোধিত" হিসেবে চিহ্নিত করতে পারবেন, অথবা নগদ/বিকাশ লেনদেন যাচাই করতে পারবেন।</div>
-  </div>`,
-
-students:`
-  <div class="panel glass">
-    <h3>ছাত্র তালিকা</h3>
-    <div class="field"><label>বিভাগ অনুসারে ফিল্টার করুন</label>
-      <select><option>সকল বিভাগ</option><option>হিফজ বিভাগ</option><option>নাজেরা বিভাগ</option><option>কিতাব বিভাগ</option></select>
+    <h3>নতুন বেতন এন্ট্রি যোগ করুন</h3>
+    <div class="field"><label>ছাত্র বাছাই করুন</label><select id="feeStudentSelect"></select></div>
+    <div class="two-col">
+      <div class="field"><label>মাস</label><input id="feeMonth" placeholder="যেমনঃ সেপ্টেম্বর ২০২৬"></div>
+      <div class="field"><label>পরিমাণ (টাকা)</label><input id="feeAmount" type="number" placeholder="৫০০"></div>
     </div>
-    <div class="row"><span>রাকিব হাসান</span><span class="mini-btn">প্রোফাইল দেখুন</span></div>
-    <div class="row"><span>তাসনিম আক্তার</span><span class="mini-btn">প্রোফাইল দেখুন</span></div>
-    <div class="row"><span>আব্দুল্লাহ</span><span class="mini-btn">প্রোফাইল দেখুন</span></div>
+    <button class="btn-primary" onclick="addFee()">এন্ট্রি যোগ করুন</button>
+  </div>
+  <div class="panel glass">
+    <h3>বেতন ব্যবস্থাপনা</h3>
+    <div id="feesList">লোড হচ্ছে...</div>
+    <div class="note">এডমিন এখান থেকে ম্যানুয়ালি "পরিশোধিত" হিসেবে চিহ্নিত করতে পারবেন।</div>
   </div>`,
 
 complaints:`
   <div class="panel glass">
     <h3>অভিযোগসমূহ</h3>
-    <div class="row"><span>খাবারের মান নিয়ে — রাকিব হাসান</span><span class="pill pending">পর্যালোচনাধীন</span></div>
-    <div class="row"><span>ক্লাস রুটিন সংক্রান্ত — তাসনিম আক্তার</span><span class="pill paid">সমাধান হয়েছে</span></div>
-    <div class="row"><span>থাকার ব্যবস্থা — আব্দুল্লাহ</span><span class="pill pending">পর্যালোচনাধীন</span></div>
-    <div class="note">এডমিন প্রতিটি অভিযোগ খুলে দেখতে ও "সমাধান হয়েছে" হিসেবে চিহ্নিত করতে পারবেন।</div>
+    <div id="complaintsList">লোড হচ্ছে...</div>
+    <div class="note">এডমিন প্রতিটি অভিযোগ "সমাধান হয়েছে" হিসেবে চিহ্নিত করতে পারবেন।</div>
   </div>`,
 
 notice:`
   <div class="panel glass">
     <h3>নতুন নোটিশ যোগ করুন</h3>
-    <div class="field"><label>শিরোনাম</label><input placeholder="যেমনঃ বার্ষিক পরীক্ষার রুটিন"></div>
-    <div class="field"><label>বিস্তারিত</label><input placeholder="নোটিশের বিবরণ লিখুন"></div>
-    <button class="btn-primary">নোটিশ প্রকাশ করুন</button>
+    <div class="field"><label>শিরোনাম</label><input id="noticeTitle" placeholder="যেমনঃ বার্ষিক পরীক্ষার রুটিন"></div>
+    <div class="field"><label>বিস্তারিত</label><input id="noticeBody" placeholder="নোটিশের বিবরণ লিখুন"></div>
+    <button class="btn-primary" onclick="publishNotice()">নোটিশ প্রকাশ করুন</button>
+  </div>
+  <div class="panel glass">
+    <h3>প্রকাশিত নোটিশসমূহ</h3>
+    <div id="noticesList">লোড হচ্ছে...</div>
   </div>`,
 
 users:`
   <div class="panel glass">
     <h3>ইউজার ব্যবস্থাপনা</h3>
-    <div class="row"><span>রাকিব হাসান — 01XXXXXXXXX</span><span class="mini-btn">পাসওয়ার্ড রিসেট</span></div>
-    <div class="row"><span>তাসনিম আক্তার — tasnim@mail.com</span><span class="mini-btn">পাসওয়ার্ড রিসেট</span></div>
-    <div class="note">ছাত্র পাসওয়ার্ড ভুলে গেলে এডমিন এখান থেকে নতুন পাসওয়ার্ড সেট করে দিতে পারবেন।</div>
+    <div class="note">পাসওয়ার্ড রিসেট এখনো এখান থেকে করা যায় না — Supabase Dashboard → Authentication → Users থেকে ম্যানুয়ালি করা যাবে।</div>
   </div>`,
 
 customize:`
   <div class="panel glass">
     <h3>ড্যাশবোর্ড বাটন কাস্টমাইজেশন</h3>
-    <div id="customList"></div>
+    <div id="customList">লোড হচ্ছে...</div>
     <button class="btn-primary" onclick="addCustomItem()">+ নতুন বাটন যোগ করুন</button>
-    <div class="note">এখানে যা পরিবর্তন করবেন তা ছাত্রদের ড্যাশবোর্ডে সাথে সাথে দেখা যাবে — লেবেল পরিবর্তন, নতুন অপশন যোগ, বা মুছে ফেলা সবই এখান থেকে করা যাবে।</div>
+    <button class="btn-primary" onclick="saveCustomize()" style="margin-top:8px;background:linear-gradient(90deg,#8fd6c4,#6fb89e);">সংরক্ষণ করুন (ছাত্রদের হোমপেজে দেখাবে)</button>
+    <div class="note">এখানে যা পরিবর্তন করবেন "সংরক্ষণ করুন" চাপার পর তা ছাত্রদের ড্যাশবোর্ডে দেখা যাবে।</div>
   </div>`
 };
+
+// ===== ভর্তি আবেদন =====
+async function loadAdmissions(){
+  const {data, error} = await sb.from('admissions').select('*').order('created_at',{ascending:false});
+  const el = document.getElementById('admissionsList');
+  if(!el) return;
+  if(error){ el.innerHTML = 'লোড করতে সমস্যা হয়েছে: '+error.message; return; }
+  if(!data || data.length===0){ el.innerHTML = '<div class="note">এখনো কোনো ভর্তি আবেদন জমা হয়নি।</div>'; return; }
+  el.innerHTML = data.map(a=>{
+    const statusLabel = a.status==='approved'?'অনুমোদিত':(a.status==='rejected'?'বাতিল':'অপেক্ষমান');
+    const pillClass = a.status==='approved'?'paid':(a.status==='rejected'?'pending':'pending');
+    const actions = a.status==='pending' ? `
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <span class="mini-btn" onclick="setAdmissionStatus('${a.id}','approved')">✅ অনুমোদন</span>
+        <span class="mini-btn" onclick="setAdmissionStatus('${a.id}','rejected')">❌ বাতিল</span>
+      </div>` : '';
+    return `<div class="row" style="flex-direction:column;align-items:stretch;">
+      <div style="display:flex;justify-content:space-between;">
+        <span>${a.full_name} — ${a.department||''}</span>
+        <span class="pill ${pillClass}">${statusLabel}</span>
+      </div>
+      ${actions}
+    </div>`;
+  }).join('');
+}
+async function setAdmissionStatus(id, status){
+  const {error} = await sb.from('admissions').update({status}).eq('id', id);
+  if(error){ alert('আপডেট ব্যর্থ: '+error.message); return; }
+  loadAdmissions();
+}
+
+// ===== বেতন =====
+async function loadFees(){
+  const sel = document.getElementById('feeStudentSelect');
+  if(sel){ sel.innerHTML = allProfiles.filter(p=>p.role==='student').map(p=>`<option value="${p.id}">${p.full_name||p.phone||p.email}</option>`).join(''); }
+  const {data, error} = await sb.from('fees').select('*, profiles(full_name)').order('paid_at',{ascending:false});
+  const el = document.getElementById('feesList');
+  if(!el) return;
+  if(error){ el.innerHTML = 'লোড করতে সমস্যা হয়েছে: '+error.message; return; }
+  if(!data || data.length===0){ el.innerHTML = '<div class="note">এখনো কোনো বেতন এন্ট্রি নেই।</div>'; return; }
+  el.innerHTML = data.map(f=>{
+    const name = f.profiles ? f.profiles.full_name : 'অজানা';
+    const action = f.status==='due' ? `<span class="mini-btn" onclick="markFeePaid('${f.id}')">পরিশোধিত করুন</span>` : '';
+    return `<div class="row"><span>${name} — ${f.month} (৳${f.amount})</span>
+      <span class="pill ${f.status==='paid'?'paid':'pending'}">${f.status==='paid'?'পরিশোধিত':'বাকি'}</span></div>
+      ${action ? `<div style="margin:-4px 0 8px;">${action}</div>` : ''}`;
+  }).join('');
+}
+async function addFee(){
+  const student_id = document.getElementById('feeStudentSelect').value;
+  const month = document.getElementById('feeMonth').value.trim();
+  const amount = document.getElementById('feeAmount').value;
+  if(!student_id || !month || !amount){ alert('সব ফিল্ড পূরণ করুন'); return; }
+  const {error} = await sb.from('fees').insert({student_id, month, amount, status:'due'});
+  if(error){ alert('যোগ করতে সমস্যা: '+error.message); return; }
+  document.getElementById('feeMonth').value=''; document.getElementById('feeAmount').value='';
+  loadFees();
+}
+async function markFeePaid(id){
+  const {error} = await sb.from('fees').update({status:'paid', paid_at: new Date().toISOString()}).eq('id', id);
+  if(error){ alert('আপডেট ব্যর্থ: '+error.message); return; }
+  loadFees();
+}
+
+// ===== অভিযোগ =====
+async function loadComplaints(){
+  const {data, error} = await sb.from('complaints').select('*, profiles(full_name)').order('created_at',{ascending:false});
+  const el = document.getElementById('complaintsList');
+  if(!el) return;
+  if(error){ el.innerHTML = 'লোড করতে সমস্যা হয়েছে: '+error.message; return; }
+  if(!data || data.length===0){ el.innerHTML = '<div class="note">এখনো কোনো অভিযোগ জমা হয়নি।</div>'; return; }
+  el.innerHTML = data.map(c=>{
+    const name = c.profiles ? c.profiles.full_name : 'অজানা';
+    const action = c.status==='pending' ? `<span class="mini-btn" onclick="resolveComplaint('${c.id}')">সমাধান হয়েছে চিহ্নিত করুন</span>` : '';
+    return `<div class="row" style="flex-direction:column;align-items:stretch;">
+      <div style="display:flex;justify-content:space-between;">
+        <span>${c.subject||''} — ${name}</span>
+        <span class="pill ${c.status==='resolved'?'paid':'pending'}">${c.status==='resolved'?'সমাধান হয়েছে':'পর্যালোচনাধীন'}</span>
+      </div>
+      ${c.details?`<div class="note" style="margin-top:4px;">${c.details}</div>`:''}
+      ${action?`<div style="margin-top:6px;">${action}</div>`:''}
+    </div>`;
+  }).join('');
+}
+async function resolveComplaint(id){
+  const {error} = await sb.from('complaints').update({status:'resolved'}).eq('id', id);
+  if(error){ alert('আপডেট ব্যর্থ: '+error.message); return; }
+  loadComplaints();
+}
+
+// ===== নোটিশ =====
+async function loadNotices(){
+  const {data, error} = await sb.from('notices').select('*').order('created_at',{ascending:false});
+  const el = document.getElementById('noticesList');
+  if(!el) return;
+  if(error){ el.innerHTML = 'লোড করতে সমস্যা হয়েছে: '+error.message; return; }
+  if(!data || data.length===0){ el.innerHTML = '<div class="note">এখনো কোনো নোটিশ প্রকাশ হয়নি।</div>'; return; }
+  el.innerHTML = data.map(n=>
+    `<div class="row"><span>${n.title}</span><span class="mini-btn" onclick="deleteNotice('${n.id}')">🗑️ মুছুন</span></div>`
+  ).join('');
+}
+async function publishNotice(){
+  const title = document.getElementById('noticeTitle').value.trim();
+  const body = document.getElementById('noticeBody').value.trim();
+  if(!title){ alert('শিরোনাম দিন'); return; }
+  const {error} = await sb.from('notices').insert({title, body});
+  if(error){ alert('প্রকাশ করতে সমস্যা: '+error.message); return; }
+  document.getElementById('noticeTitle').value=''; document.getElementById('noticeBody').value='';
+  loadNotices();
+}
+async function deleteNotice(id){
+  const {error} = await sb.from('notices').delete().eq('id', id);
+  if(error){ alert('মুছতে সমস্যা: '+error.message); return; }
+  loadNotices();
+}
+
+// ===== ড্যাশবোর্ড কাস্টমাইজ =====
+async function loadCustomize(){
+  const {data, error} = await sb.from('dashboard_items').select('*').order('sort_order',{ascending:true});
+  if(!error && data){ customLabels = data; }
+  initCustomize();
+}
+async function saveCustomize(){
+  await sb.from('dashboard_items').delete().not('id','is',null);
+  const rows = customLabels.map((c,i)=>({label: c.label, sort_order:i}));
+  const {error} = await sb.from('dashboard_items').insert(rows);
+  if(error){ alert('সংরক্ষণ ব্যর্থ: '+error.message); return; }
+  alert('সংরক্ষিত হয়েছে — ছাত্রদের হোমপেজে এখন এটা দেখা যাবে।');
+  loadCustomize();
+}
 
 function showTab(id,el){
   document.querySelectorAll('.tab-chip').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  document.getElementById('panels').innerHTML = panels[id];
-  if(id==='customize') initCustomize();
+  document.getElementById('panels').innerHTML = panels[id] || '<div class="panel glass">লোড হচ্ছে...</div>';
+  if(id==='customize') loadCustomize();
+  if(id==='admissions') loadAdmissions();
+  if(id==='fees') loadFees();
+  if(id==='complaints') loadComplaints();
+  if(id==='notice') loadNotices();
 }
 showTab('overview', document.querySelector('.tab-chip'));
 
-let customLabels = ["নিয়ম কানুন","ভর্তি আবেদন","মাসিক বেতন","অভিযোগ কেন্দ্র","মোট ছাত্র সংখ্যা","বিভাগীয় ছাত্র","জরুরী নোটিশ","পরীক্ষার ফলাফল"];
+let customLabels = [];
 function initCustomize(){
   const list = document.getElementById('customList');
+  if(!list) return;
   list.innerHTML = customLabels.map((v,i)=>
     `<div class="custom-item">
-      <input value="${v}" onchange="customLabels[${i}]=this.value">
+      <input value="${v.label}" onchange="customLabels[${i}].label=this.value">
       <div class="icon-btn" onclick="removeItem(${i})">🗑️</div>
      </div>`
   ).join('');
 }
-function addCustomItem(){ customLabels.push('নতুন অপশন'); initCustomize(); }
+function addCustomItem(){ customLabels.push({label:'নতুন অপশন'}); initCustomize(); }
 function removeItem(i){ customLabels.splice(i,1); initCustomize(); }
 </script>
 </body>

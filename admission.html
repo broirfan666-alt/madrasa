@@ -93,17 +93,17 @@ body{
 
   <div class="panel glass">
     <h3>ছাত্রের তথ্য</h3>
-    <div class="field"><label>ছাত্রের পূর্ণ নাম</label><input placeholder="যেমনঃ মোঃ রাকিব হাসান"></div>
+    <div class="field"><label>ছাত্রের পূর্ণ নাম</label><input id="admFullName" placeholder="যেমনঃ মোঃ রাকিব হাসান"></div>
     <div class="two-col">
-      <div class="field"><label>জন্ম তারিখ</label><input type="date"></div>
+      <div class="field"><label>জন্ম তারিখ</label><input id="admDob" type="date"></div>
       <div class="field"><label>ভর্তির বিভাগ</label>
-        <select><option>হিফজ বিভাগ</option><option>নাজেরা বিভাগ</option><option>কিতাব বিভাগ</option><option>নূরানী বিভাগ</option></select>
+        <select id="admDept"><option>হিফজ বিভাগ</option><option>নাজেরা বিভাগ</option><option>কিতাব বিভাগ</option><option>নূরানী বিভাগ</option></select>
       </div>
     </div>
-    <div class="field"><label>পিতার নাম</label><input placeholder="পিতার পূর্ণ নাম"></div>
-    <div class="field"><label>মাতার নাম</label><input placeholder="মাতার পূর্ণ নাম"></div>
-    <div class="field"><label>অভিভাবকের মোবাইল নম্বর</label><input placeholder="01XXXXXXXXX"></div>
-    <div class="field"><label>বর্তমান ঠিকানা</label><input placeholder="গ্রাম/মহল্লা, থানা, জেলা"></div>
+    <div class="field"><label>পিতার নাম</label><input id="admFather" placeholder="পিতার পূর্ণ নাম"></div>
+    <div class="field"><label>মাতার নাম</label><input id="admMother" placeholder="মাতার পূর্ণ নাম"></div>
+    <div class="field"><label>অভিভাবকের মোবাইল নম্বর</label><input id="admGuardianPhone" placeholder="01XXXXXXXXX"></div>
+    <div class="field"><label>বর্তমান ঠিকানা</label><input id="admAddress" placeholder="গ্রাম/মহল্লা, থানা, জেলা"></div>
   </div>
 
   <div class="panel glass">
@@ -124,7 +124,19 @@ body{
   <div class="note">জমা দেওয়ার পর এডমিন আপনার আবেদন যাচাই করে অনুমোদন করবেন। অনুমোদনের পর ভর্তি ফি পরিশোধের অপশন দেখতে পাবেন।</div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
+const sb = window.supabase.createClient(
+  'https://fraqjybeoozsqqbbmqem.supabase.co',
+  'sb_publishable_GjIDgcF6NT3p83PLRTLGww_5DDGRiO_'
+);
+let currentUserId = null;
+(async ()=>{
+  const {data:{session}} = await sb.auth.getSession();
+  if(!session){ alert('আবেদন করতে হলে আগে লগইন করুন'); location.href = 'index.html'; return; }
+  currentUserId = session.user.id;
+})();
+
 function setTheme(mode,el){
   document.documentElement.setAttribute('data-theme',mode);
   document.querySelectorAll('.theme-toggle .tt-btn').forEach(t=>t.classList.remove('active'));
@@ -136,8 +148,25 @@ function fakeUpload(id){
   box.querySelector('p').innerText='✓ ছবি সংযুক্ত হয়েছে';
   box.querySelector('.ic').innerText='✅';
 }
-function submitForm(){
-  alert('আবেদন জমা হয়েছে (ডেমো) — এডমিন প্যানেলে "ভর্তি আবেদন" ট্যাবে এটি অপেক্ষমান হিসেবে দেখা যাবে।');
+async function submitForm(){
+  if(!currentUserId){ alert('লগইন যাচাই হচ্ছে, একটু পর আবার চেষ্টা করুন'); return; }
+  const full_name = document.getElementById('admFullName').value.trim();
+  if(!full_name){ alert('ছাত্রের নাম দিন'); return; }
+  const row = {
+    student_id: currentUserId,
+    full_name,
+    date_of_birth: document.getElementById('admDob').value || null,
+    department: document.getElementById('admDept').value,
+    father_name: document.getElementById('admFather').value.trim(),
+    mother_name: document.getElementById('admMother').value.trim(),
+    guardian_phone: document.getElementById('admGuardianPhone').value.trim(),
+    address: document.getElementById('admAddress').value.trim(),
+    status: 'pending'
+  };
+  const {error} = await sb.from('admissions').insert(row);
+  if(error){ alert('আবেদন জমা ব্যর্থ: ' + error.message); return; }
+  alert('আবেদন জমা হয়েছে — এডমিন প্যানেলে "ভর্তি আবেদন" ট্যাবে এটি অপেক্ষমান হিসেবে দেখা যাবে।');
+  location.href = 'index.html';
 }
 </script>
 </body>
