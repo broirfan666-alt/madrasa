@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>এডমিন প্যানেল — হামিদুল উলুম মাদ্রাসা</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg1:#0f3d3e; --bg2:#1a5c4a; --bg3:#c9a24b;
+  --glass:rgba(255,255,255,0.14); --glass-border:rgba(255,255,255,0.35);
+  --text:#ffffff; --text-dim:rgba(255,255,255,0.75);
+  --accent:#e8c368; --card-shadow:rgba(0,0,0,0.25);
+  --danger:#e08a8a; --good:#8fd6b0;
+}
+:root[data-theme="light"]{
+  --bg1:#e9f2ee; --bg2:#cfe6dc; --bg3:#f0dba7;
+  --glass:rgba(255,255,255,0.55); --glass-border:rgba(255,255,255,0.8);
+  --text:#0f3d3e; --text-dim:rgba(15,61,62,0.7);
+  --accent:#9c7a25; --card-shadow:rgba(0,0,0,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'Hind Siliguri',sans-serif;min-height:100vh;
+  background:
+    radial-gradient(circle at 15% -10%, rgba(232,195,104,0.35), transparent 45%),
+    radial-gradient(circle at 100% 15%, rgba(143,214,196,0.3), transparent 50%),
+    radial-gradient(circle at 20% 100%, rgba(45,120,100,0.4), transparent 55%),
+    linear-gradient(160deg, var(--bg2), var(--bg1) 65%);
+  color:var(--text);
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  transition:background .3s;
+}
+.glass{background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-radius:20px;box-shadow:0 8px 32px var(--card-shadow);}
+.wrap{max-width:520px;margin:0 auto;padding:16px 16px 60px;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:4px 4px 14px;}
+.badge{font-size:.7rem;padding:5px 12px;border-radius:20px;background:var(--accent);color:#1a2e20;font-weight:600;}
+.title{font-size:1.3rem;font-weight:700;
+  background:linear-gradient(90deg,var(--accent),#8fd6c4,var(--accent));
+  -webkit-background-clip:text;background-clip:text;color:transparent;}
+.theme-toggle{display:flex;gap:6px;}
+.tt-btn{padding:7px 10px;border-radius:12px;font-size:.75rem;cursor:pointer;color:var(--text-dim);}
+.tt-btn.active{background:var(--accent);color:#1a2e20;font-weight:600;}
+
+.tabs-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:16px;}
+.tab-chip{flex:0 0 auto;padding:9px 14px;font-size:.82rem;cursor:pointer;color:var(--text-dim);white-space:nowrap;
+  background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-radius:14px;box-shadow:0 4px 16px var(--card-shadow);}
+.tab-chip.active{background:linear-gradient(90deg,var(--accent),#d9b968);color:#1a2e20;font-weight:600;border-color:transparent;}
+
+.panel{padding:18px;margin-bottom:14px;}
+.panel h3{font-size:1rem;margin-bottom:12px;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.stat{padding:14px;text-align:center;}
+.stat b{font-size:1.4rem;display:block;color:var(--accent);}
+.stat span{font-size:.72rem;color:var(--text-dim);}
+
+.row{display:flex;justify-content:space-between;align-items:center;padding:11px 12px;margin-bottom:8px;font-size:.85rem;
+  background:rgba(255,255,255,0.08);border:1px solid var(--glass-border);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:14px;}
+:root[data-theme="light"] .row{background:rgba(255,255,255,0.35);}
+.row:last-child{margin-bottom:0;}
+.pill{font-size:.7rem;padding:5px 12px;border-radius:20px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--glass-border);}
+.pill.pending{background:rgba(224,138,138,0.22);color:var(--danger);}
+.pill.paid{background:rgba(143,214,176,0.22);color:var(--good);}
+.mini-btn{font-size:.72rem;padding:6px 10px;border-radius:10px;cursor:pointer;color:var(--text);
+  background:rgba(255,255,255,0.15);border:1px solid var(--glass-border);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+
+.field{margin-bottom:12px;}
+.field label{font-size:.75rem;color:var(--text-dim);display:block;margin-bottom:5px;}
+.field input,.field select{width:100%;padding:10px 12px;border-radius:14px;border:1px solid var(--glass-border);
+  background:rgba(255,255,255,0.1);color:var(--text);font-family:inherit;font-size:.85rem;outline:none;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
+:root[data-theme="light"] .field input,:root[data-theme="light"] .field select{background:rgba(255,255,255,0.45);}
+.field select option{color:#1a2e20;}
+.btn-primary{width:100%;padding:12px;border:none;border-radius:14px;font-family:inherit;font-weight:600;font-size:.88rem;background:linear-gradient(90deg,var(--accent),#d9b968);color:#1a2e20;cursor:pointer;margin-top:4px;}
+
+.custom-item{display:flex;gap:8px;margin-bottom:10px;align-items:center;}
+.custom-item input{flex:1;}
+.icon-btn{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;
+  background:rgba(255,255,255,0.15);border:1px solid var(--glass-border);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+.note{font-size:.72rem;color:var(--text-dim);margin-top:8px;line-height:1.5;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div>
+      <div class="title">এডমিন প্যানেল</div>
+      <span class="badge">হামিদুল উলুম মাদ্রাসা</span>
+    </div>
+    <div class="theme-toggle">
+      <div class="tt-btn active" id="lightBtn" onclick="setTheme('light',this)">☀️</div>
+      <div class="tt-btn" id="darkBtn" onclick="setTheme('dark',this)">🌙</div>
+    </div>
+  </div>
+
+  <div class="tabs-row" id="tabsRow"></div>
+  <div id="panels"></div>
+</div>
+
+<script>
+function setTheme(mode,el){
+  document.documentElement.setAttribute('data-theme',mode);
+  document.querySelectorAll('.theme-toggle .tt-btn').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+const tabs = [
+  {id:'overview', label:'ওভারভিউ'},
+  {id:'admissions', label:'ভর্তি আবেদন'},
+  {id:'fees', label:'বেতন'},
+  {id:'complaints', label:'অভিযোগ কেন্দ্র'},
+  {id:'students', label:'ছাত্র তালিকা'},
+  {id:'notice', label:'নোটিশ'},
+  {id:'users', label:'ইউজার/পাসওয়ার্ড'},
+  {id:'customize', label:'ড্যাশবোর্ড কাস্টমাইজ'},
+];
+
+document.getElementById('tabsRow').innerHTML = tabs.map((t,i)=>
+  `<div class="tab-chip ${i===0?'active':''}" data-tab="${t.id}" onclick="showTab('${t.id}',this)">${t.label}</div>`
+).join('');
+
+const panels = {
+overview:`
+  <div class="panel glass">
+    <div class="stat-grid">
+      <div class="stat glass"><b>312</b><span>মোট ছাত্র</span></div>
+      <div class="stat glass"><b>14</b><span>নতুন আবেদন (অপেক্ষমান)</span></div>
+      <div class="stat glass"><b>৮৯%</b><span>এ মাসের বেতন আদায়</span></div>
+      <div class="stat glass"><b>৬</b><span>বিভাগ</span></div>
+    </div>
+    <h3>সাম্প্রতিক কার্যক্রম</h3>
+    <div class="row"><span>নতুন ভর্তি আবেদন — রাকিব হাসান</span><span class="pill pending">অপেক্ষমান</span></div>
+    <div class="row"><span>বেতন পরিশোধ — জান্নাতুল ফেরদৌস (হিফজ)</span><span class="pill paid">পরিশোধিত</span></div>
+    <div class="row"><span>নোটিশ প্রকাশ — বার্ষিক পরীক্ষার রুটিন</span><span class="pill paid">প্রকাশিত</span></div>
+  </div>`,
+
+admissions:`
+  <div class="panel glass">
+    <h3>ভর্তি আবেদনসমূহ</h3>
+    <div class="row"><span>রাকিব হাসান — ৫ম শ্রেণি</span><span class="pill pending">অপেক্ষমান</span></div>
+    <div class="row"><span>তাসনিম আক্তার — হিফজ বিভাগ</span><span class="pill pending">অপেক্ষমান</span></div>
+    <div class="row"><span>আব্দুল্লাহ — ৩য় শ্রেণি</span><span class="pill paid">অনুমোদিত</span></div>
+    <div class="note">প্রতিটি আবেদনে ছাত্রের জন্ম নিবন্ধন ও পাসপোর্ট সাইজ ছবি সংযুক্ত থাকবে — এডমিন চাইলে অনুমোদন বা বাতিল করতে পারবেন।</div>
+  </div>`,
+
+fees:`
+  <div class="panel glass">
+    <h3>বেতন ব্যবস্থাপনা</h3>
+    <div class="row"><span>রাকিব হাসান — সেপ্টেম্বর</span><span class="pill paid">পরিশোধিত (বিকাশ)</span></div>
+    <div class="row"><span>তাসনিম আক্তার — সেপ্টেম্বর</span><span class="pill pending">বাকি</span></div>
+    <div class="row"><span>আব্দুল্লাহ — সেপ্টেম্বর</span><span class="pill paid">পরিশোধিত (নগদ)</span></div>
+    <div class="note">এডমিন এখান থেকে ম্যানুয়ালি "পরিশোধিত" হিসেবে চিহ্নিত করতে পারবেন, অথবা নগদ/বিকাশ লেনদেন যাচাই করতে পারবেন।</div>
+  </div>`,
+
+students:`
+  <div class="panel glass">
+    <h3>ছাত্র তালিকা</h3>
+    <div class="field"><label>বিভাগ অনুসারে ফিল্টার করুন</label>
+      <select><option>সকল বিভাগ</option><option>হিফজ বিভাগ</option><option>নাজেরা বিভাগ</option><option>কিতাব বিভাগ</option></select>
+    </div>
+    <div class="row"><span>রাকিব হাসান</span><span class="mini-btn">প্রোফাইল দেখুন</span></div>
+    <div class="row"><span>তাসনিম আক্তার</span><span class="mini-btn">প্রোফাইল দেখুন</span></div>
+    <div class="row"><span>আব্দুল্লাহ</span><span class="mini-btn">প্রোফাইল দেখুন</span></div>
+  </div>`,
+
+complaints:`
+  <div class="panel glass">
+    <h3>অভিযোগসমূহ</h3>
+    <div class="row"><span>খাবারের মান নিয়ে — রাকিব হাসান</span><span class="pill pending">পর্যালোচনাধীন</span></div>
+    <div class="row"><span>ক্লাস রুটিন সংক্রান্ত — তাসনিম আক্তার</span><span class="pill paid">সমাধান হয়েছে</span></div>
+    <div class="row"><span>থাকার ব্যবস্থা — আব্দুল্লাহ</span><span class="pill pending">পর্যালোচনাধীন</span></div>
+    <div class="note">এডমিন প্রতিটি অভিযোগ খুলে দেখতে ও "সমাধান হয়েছে" হিসেবে চিহ্নিত করতে পারবেন।</div>
+  </div>`,
+
+notice:`
+  <div class="panel glass">
+    <h3>নতুন নোটিশ যোগ করুন</h3>
+    <div class="field"><label>শিরোনাম</label><input placeholder="যেমনঃ বার্ষিক পরীক্ষার রুটিন"></div>
+    <div class="field"><label>বিস্তারিত</label><input placeholder="নোটিশের বিবরণ লিখুন"></div>
+    <button class="btn-primary">নোটিশ প্রকাশ করুন</button>
+  </div>`,
+
+users:`
+  <div class="panel glass">
+    <h3>ইউজার ব্যবস্থাপনা</h3>
+    <div class="row"><span>রাকিব হাসান — 01XXXXXXXXX</span><span class="mini-btn">পাসওয়ার্ড রিসেট</span></div>
+    <div class="row"><span>তাসনিম আক্তার — tasnim@mail.com</span><span class="mini-btn">পাসওয়ার্ড রিসেট</span></div>
+    <div class="note">ছাত্র পাসওয়ার্ড ভুলে গেলে এডমিন এখান থেকে নতুন পাসওয়ার্ড সেট করে দিতে পারবেন।</div>
+  </div>`,
+
+customize:`
+  <div class="panel glass">
+    <h3>ড্যাশবোর্ড বাটন কাস্টমাইজেশন</h3>
+    <div id="customList"></div>
+    <button class="btn-primary" onclick="addCustomItem()">+ নতুন বাটন যোগ করুন</button>
+    <div class="note">এখানে যা পরিবর্তন করবেন তা ছাত্রদের ড্যাশবোর্ডে সাথে সাথে দেখা যাবে — লেবেল পরিবর্তন, নতুন অপশন যোগ, বা মুছে ফেলা সবই এখান থেকে করা যাবে।</div>
+  </div>`
+};
+
+function showTab(id,el){
+  document.querySelectorAll('.tab-chip').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panels').innerHTML = panels[id];
+  if(id==='customize') initCustomize();
+}
+showTab('overview', document.querySelector('.tab-chip'));
+
+let customLabels = ["নিয়ম কানুন","ভর্তি আবেদন","মাসিক বেতন","অভিযোগ কেন্দ্র","মোট ছাত্র সংখ্যা","বিভাগীয় ছাত্র","জরুরী নোটিশ","পরীক্ষার ফলাফল"];
+function initCustomize(){
+  const list = document.getElementById('customList');
+  list.innerHTML = customLabels.map((v,i)=>
+    `<div class="custom-item">
+      <input value="${v}" onchange="customLabels[${i}]=this.value">
+      <div class="icon-btn" onclick="removeItem(${i})">🗑️</div>
+     </div>`
+  ).join('');
+}
+function addCustomItem(){ customLabels.push('নতুন অপশন'); initCustomize(); }
+function removeItem(i){ customLabels.splice(i,1); initCustomize(); }
+</script>
+</body>
+</html>

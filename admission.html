@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ভর্তি আবেদন — হামিদুল উলুম মাদ্রাসা</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg1:#0f3d3e; --bg2:#1a5c4a; --bg3:#c9a24b;
+  --glass:rgba(255,255,255,0.14); --glass-border:rgba(255,255,255,0.35);
+  --text:#ffffff; --text-dim:rgba(255,255,255,0.75);
+  --accent:#e8c368; --card-shadow:rgba(0,0,0,0.25);
+}
+:root[data-theme="light"]{
+  --bg1:#e9f2ee; --bg2:#cfe6dc; --bg3:#f0dba7;
+  --glass:rgba(255,255,255,0.55); --glass-border:rgba(255,255,255,0.8);
+  --text:#0f3d3e; --text-dim:rgba(15,61,62,0.7);
+  --accent:#9c7a25; --card-shadow:rgba(0,0,0,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'Hind Siliguri',sans-serif;min-height:100vh;
+  background:
+    radial-gradient(circle at 15% -10%, rgba(232,195,104,0.35), transparent 45%),
+    radial-gradient(circle at 100% 15%, rgba(143,214,196,0.3), transparent 50%),
+    radial-gradient(circle at 20% 100%, rgba(45,120,100,0.4), transparent 55%),
+    linear-gradient(160deg, var(--bg2), var(--bg1) 65%);
+  color:var(--text);
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  transition:background .3s;
+}
+.glass{background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-radius:20px;box-shadow:0 8px 32px var(--card-shadow);}
+.wrap{max-width:480px;margin:0 auto;padding:20px 16px 60px;}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.title{font-size:1.3rem;font-weight:700;
+  background:linear-gradient(90deg,var(--accent),#8fd6c4,var(--accent));
+  -webkit-background-clip:text;background-clip:text;color:transparent;}
+.sub{font-size:.78rem;color:var(--text-dim);margin-top:2px;}
+.tt-btn{padding:7px 10px;border-radius:12px;font-size:.75rem;cursor:pointer;color:var(--text-dim);
+  background:rgba(255,255,255,0.1);border:1px solid var(--glass-border);}
+.tt-btn.active{background:var(--accent);color:#1a2e20;font-weight:600;}
+.theme-toggle{display:flex;gap:6px;}
+
+.step-bar{display:flex;gap:6px;margin-bottom:18px;}
+.step{flex:1;height:6px;border-radius:6px;background:rgba(255,255,255,0.15);}
+.step.done{background:var(--accent);}
+
+.panel{padding:20px;margin-bottom:16px;}
+.panel h3{font-size:1rem;margin-bottom:14px;}
+.field{margin-bottom:14px;}
+.field label{font-size:.75rem;color:var(--text-dim);display:block;margin-bottom:5px;}
+.field input,.field select{width:100%;padding:11px 13px;border-radius:14px;border:1px solid var(--glass-border);
+  background:rgba(255,255,255,0.1);color:var(--text);font-family:inherit;font-size:.87rem;outline:none;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
+:root[data-theme="light"] .field input,:root[data-theme="light"] .field select{background:rgba(255,255,255,0.45);}
+.field select option{color:#1a2e20;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+.upload-box{
+  border:1.5px dashed var(--glass-border);border-radius:16px;padding:20px;text-align:center;cursor:pointer;
+  background:rgba(255,255,255,0.06);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+}
+.upload-box .ic{font-size:1.6rem;margin-bottom:6px;}
+.upload-box p{font-size:.78rem;color:var(--text-dim);}
+.upload-box.filled{border-style:solid;border-color:var(--accent);}
+.upload-box.filled p{color:var(--accent);}
+.upload-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+
+.btn-primary{width:100%;padding:13px;border:none;border-radius:16px;font-family:inherit;font-weight:600;
+  font-size:.9rem;background:linear-gradient(90deg,var(--accent),#d9b968);color:#1a2e20;cursor:pointer;}
+.btn-ghost{width:100%;padding:12px;border-radius:16px;font-family:inherit;font-weight:600;font-size:.85rem;
+  background:rgba(255,255,255,0.1);border:1px solid var(--glass-border);color:var(--text);cursor:pointer;margin-top:10px;}
+.note{font-size:.72rem;color:var(--text-dim);margin-top:10px;line-height:1.5;text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div>
+      <div class="title">ভর্তি আবেদন ফরম</div>
+      <div class="sub">হামিদুল উলুম মাদ্রাসা</div>
+    </div>
+    <div class="theme-toggle">
+      <div class="tt-btn active" id="lightBtn" onclick="setTheme('light',this)">☀️</div>
+      <div class="tt-btn" id="darkBtn" onclick="setTheme('dark',this)">🌙</div>
+    </div>
+  </div>
+
+  <div class="step-bar">
+    <div class="step done"></div><div class="step done"></div><div class="step"></div>
+  </div>
+
+  <div class="panel glass">
+    <h3>ছাত্রের তথ্য</h3>
+    <div class="field"><label>ছাত্রের পূর্ণ নাম</label><input placeholder="যেমনঃ মোঃ রাকিব হাসান"></div>
+    <div class="two-col">
+      <div class="field"><label>জন্ম তারিখ</label><input type="date"></div>
+      <div class="field"><label>ভর্তির বিভাগ</label>
+        <select><option>হিফজ বিভাগ</option><option>নাজেরা বিভাগ</option><option>কিতাব বিভাগ</option><option>নূরানী বিভাগ</option></select>
+      </div>
+    </div>
+    <div class="field"><label>পিতার নাম</label><input placeholder="পিতার পূর্ণ নাম"></div>
+    <div class="field"><label>মাতার নাম</label><input placeholder="মাতার পূর্ণ নাম"></div>
+    <div class="field"><label>অভিভাবকের মোবাইল নম্বর</label><input placeholder="01XXXXXXXXX"></div>
+    <div class="field"><label>বর্তমান ঠিকানা</label><input placeholder="গ্রাম/মহল্লা, থানা, জেলা"></div>
+  </div>
+
+  <div class="panel glass">
+    <h3>প্রয়োজনীয় ছবি আপলোড</h3>
+    <div class="upload-row">
+      <div class="upload-box" id="birthBox" onclick="fakeUpload('birthBox')">
+        <div class="ic">📄</div><p>জন্ম নিবন্ধনের ছবি</p>
+      </div>
+      <div class="upload-box" id="photoBox" onclick="fakeUpload('photoBox')">
+        <div class="ic">🖼️</div><p>পাসপোর্ট সাইজ ছবি</p>
+      </div>
+    </div>
+    <div class="note">ছবি স্পষ্ট ও পরিষ্কার হতে হবে, JPG/PNG ফরম্যাট, সর্বোচ্চ ৫MB।</div>
+  </div>
+
+  <button class="btn-primary" onclick="submitForm()">আবেদন জমা দিন</button>
+  <button class="btn-ghost">খসড়া হিসেবে সংরক্ষণ করুন</button>
+  <div class="note">জমা দেওয়ার পর এডমিন আপনার আবেদন যাচাই করে অনুমোদন করবেন। অনুমোদনের পর ভর্তি ফি পরিশোধের অপশন দেখতে পাবেন।</div>
+</div>
+
+<script>
+function setTheme(mode,el){
+  document.documentElement.setAttribute('data-theme',mode);
+  document.querySelectorAll('.theme-toggle .tt-btn').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+function fakeUpload(id){
+  const box=document.getElementById(id);
+  box.classList.add('filled');
+  box.querySelector('p').innerText='✓ ছবি সংযুক্ত হয়েছে';
+  box.querySelector('.ic').innerText='✅';
+}
+function submitForm(){
+  alert('আবেদন জমা হয়েছে (ডেমো) — এডমিন প্যানেলে "ভর্তি আবেদন" ট্যাবে এটি অপেক্ষমান হিসেবে দেখা যাবে।');
+}
+</script>
+</body>
+</html>
