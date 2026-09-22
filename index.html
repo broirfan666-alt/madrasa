@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>হামিদুল উলুম মাদ্রাসা</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+:root{
+  --bg1:#0f3d3e; --bg2:#1a5c4a; --bg3:#c9a24b;
+  --glass:rgba(255,255,255,0.14); --glass-border:rgba(255,255,255,0.35);
+  --text:#ffffff; --text-dim:rgba(255,255,255,0.75);
+  --accent:#e8c368; --card-shadow:rgba(0,0,0,0.25);
+}
+:root[data-theme="light"]{
+  --bg1:#e9f2ee; --bg2:#cfe6dc; --bg3:#f0dba7;
+  --glass:rgba(255,255,255,0.55); --glass-border:rgba(255,255,255,0.8);
+  --text:#0f3d3e; --text-dim:rgba(15,61,62,0.7);
+  --accent:#9c7a25; --card-shadow:rgba(0,0,0,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'Hind Siliguri',sans-serif;
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 15% -10%, rgba(232,195,104,0.35), transparent 45%),
+    radial-gradient(circle at 100% 15%, rgba(143,214,196,0.3), transparent 50%),
+    radial-gradient(circle at 20% 100%, rgba(45,120,100,0.4), transparent 55%),
+    linear-gradient(160deg, var(--bg2), var(--bg1) 65%);
+  color:var(--text);
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  overflow-x:hidden;
+  transition:background .3s;
+}
+.glass{
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  border-radius:22px;
+  box-shadow:0 8px 32px var(--card-shadow);
+}
+/* ---------- LOGIN ---------- */
+#login{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+.icon-badge{
+  width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:2rem;margin-bottom:16px;
+}
+.login-title{
+  font-size:1.6rem;font-weight:700;text-align:center;margin-bottom:4px;
+  background:linear-gradient(90deg,var(--accent),#8fd6c4,var(--accent));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.login-sub{color:var(--text-dim);font-size:.85rem;margin-bottom:22px;text-align:center;}
+.login-card{width:100%;max-width:360px;padding:26px 22px;}
+.tabs{display:flex;gap:8px;margin-bottom:18px;}
+.tab{flex:1;text-align:center;padding:9px;border-radius:14px;font-size:.85rem;cursor:pointer;color:var(--text-dim);
+  background:rgba(255,255,255,0.1);border:1px solid var(--glass-border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
+.tab.active{background:linear-gradient(90deg,var(--accent),#d9b968);color:#1a2e20;font-weight:600;border-color:transparent;}
+.field{margin-bottom:14px;}
+.field label{font-size:.75rem;color:var(--text-dim);display:block;margin-bottom:5px;}
+.field input{
+  width:100%;padding:11px 14px;border-radius:14px;border:1px solid var(--glass-border);
+  background:rgba(255,255,255,0.12);color:var(--text);font-family:inherit;font-size:.9rem;outline:none;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+}
+:root[data-theme="light"] .field input{background:rgba(255,255,255,0.5);}
+.forgot{font-size:.75rem;color:var(--accent);text-align:right;display:block;margin-bottom:16px;cursor:pointer;}
+.btn-primary{
+  width:100%;padding:13px;border:none;border-radius:16px;font-family:inherit;font-weight:600;
+  font-size:.95rem;background:linear-gradient(90deg,var(--accent),#d9b968);color:#1a2e20;cursor:pointer;
+}
+.switch-link{text-align:center;font-size:.8rem;color:var(--text-dim);margin-top:16px;cursor:pointer;
+  padding:11px 14px;border-radius:16px;background:rgba(255,255,255,0.1);border:1px solid var(--glass-border);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
+:root[data-theme="light"] .switch-link{background:rgba(255,255,255,0.45);}
+.switch-link b{color:var(--accent);font-weight:600;}
+/* ---------- DASHBOARD ---------- */
+#dash{display:none;padding:16px 16px 40px;max-width:480px;margin:0 auto;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:4px 4px 14px;}
+.avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;cursor:pointer;}
+.avatar img,.avatar-inner{width:100%;height:100%;border-radius:50%;object-fit:cover;}
+.burger{width:44px;height:44px;border-radius:16px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;cursor:pointer;}
+.burger span{width:20px;height:2px;background:var(--text);border-radius:2px;}
+.hero{padding:22px;margin-bottom:18px;text-align:center;}
+.hero h1{
+  font-size:1.7rem;font-weight:700;
+  background:linear-gradient(90deg,var(--accent),#8fd6c4,var(--accent));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p{color:var(--text-dim);font-size:.8rem;margin-top:4px;}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.card-btn{
+  padding:20px 10px;text-align:center;font-weight:600;font-size:.95rem;cursor:pointer;
+  transition:transform .15s;
+}
+.card-btn:active{transform:scale(.96);}
+/* ---------- DRAWER ---------- */
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;z-index:5;}
+#drawer{
+  position:fixed;top:0;right:-300px;width:270px;height:100%;z-index:6;
+  padding:22px 18px;transition:right .25s ease;border-radius:0;
+  padding-top:calc(22px + env(safe-area-inset-top,0px));
+}
+#drawer.open{right:0;}
+.drawer-item{padding:13px 10px;border-radius:14px;margin-bottom:8px;cursor:pointer;font-size:.9rem;display:flex;justify-content:space-between;align-items:center;
+  background:rgba(255,255,255,0.08);border:1px solid var(--glass-border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
+.sub{display:none;margin:0 0 8px 12px;}
+.sub.open{display:block;}
+.sub-item{padding:10px;border-radius:12px;margin-bottom:6px;font-size:.85rem;color:var(--text-dim);cursor:pointer;
+  background:rgba(255,255,255,0.06);border:1px solid var(--glass-border);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+.toggle-row{display:flex;gap:8px;margin-top:14px;}
+.toggle-row .tab{padding:8px;}
+/* ---------- PROFILE PANEL ---------- */
+#profile{
+  position:fixed;top:0;left:-300px;width:270px;height:100%;z-index:6;
+  padding:22px 18px;transition:left .25s ease;
+  padding-top:calc(22px + env(safe-area-inset-top,0px));
+}
+#profile.open{left:0;}
+.profile-avatar{width:70px;height:70px;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;background:var(--accent);color:#1a2e20;}
+.profile-field{margin-bottom:12px;}
+.profile-field label{font-size:.72rem;color:var(--text-dim);}
+.profile-field input{width:100%;padding:9px 12px;border-radius:12px;border:1px solid var(--glass-border);background:rgba(255,255,255,0.12);color:var(--text);font-family:inherit;font-size:.85rem;margin-top:3px;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="icon-badge glass">🕌</div>
+  <div class="login-title">হামিদুল উলুম মাদ্রাসা</div>
+  <div class="login-sub">কালিবাড়ি, সাতপাই, নেত্রকোণা</div>
+  <div class="login-card glass">
+    <div class="tabs">
+      <div class="tab active" onclick="setTab(this,'mobile')">মোবাইল নম্বর</div>
+      <div class="tab" onclick="setTab(this,'email')">ইমেইল</div>
+    </div>
+    <div class="field"><label id="loginLabel">মোবাইল নম্বর</label><input id="loginInput" placeholder="01XXXXXXXXX"></div>
+    <div class="field"><label>পাসওয়ার্ড</label><input id="loginPassword" type="password" placeholder="••••••••"></div>
+    <span class="forgot" onclick="alert('পাসওয়ার্ড ভুলে গেলে এডমিন নতুন পাসওয়ার্ড সেট করে দেবেন।')">পাসওয়ার্ড ভুলে গেছেন?</span>
+    <button class="btn-primary" onclick="doLogin()">লগইন করুন</button>
+    <div class="switch-link" onclick="toggleForm('signup')">নতুন এখানে? <b>অ্যাকাউন্ট তৈরি করুন</b></div>
+  </div>
+
+  <div class="login-card glass" id="signupCard" style="display:none;">
+    <div class="field"><label>পূর্ণ নাম</label><input id="signupName" placeholder="আপনার নাম লিখুন"></div>
+    <div class="field"><label>মোবাইল নম্বর অথবা ইমেইল</label><input id="signupIdentifier" placeholder="01XXXXXXXXX / example@mail.com"></div>
+    <div class="field"><label>পাসওয়ার্ড</label><input id="signupPassword" type="password" placeholder="••••••••"></div>
+    <div class="field"><label>পাসওয়ার্ড নিশ্চিত করুন</label><input id="signupConfirm" type="password" placeholder="••••••••"></div>
+    <button class="btn-primary" onclick="doSignup()">অ্যাকাউন্ট তৈরি করুন</button>
+    <div class="switch-link" onclick="toggleForm('login')">আগে থেকে অ্যাকাউন্ট আছে? <b>লগইন করুন</b></div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dash">
+  <div class="topbar">
+    <div class="avatar glass" onclick="toggleProfile()"><div class="avatar-inner" style="display:flex;align-items:center;justify-content:center;background:var(--accent);color:#1a2e20;font-weight:700;">ম</div></div>
+    <div class="burger glass" onclick="toggleDrawer()"><span></span><span></span><span></span></div>
+  </div>
+  <div class="hero glass">
+    <h1>হামিদুল উলুম মাদ্রাসা</h1>
+    <p>আসসালামু আলাইকুম, স্বাগতম</p>
+  </div>
+  <div class="grid" id="cardGrid"></div>
+</div>
+
+<!-- OVERLAY -->
+<div id="overlay" onclick="closeAll()"></div>
+
+<!-- DRAWER -->
+<div id="drawer" class="glass">
+  <div class="drawer-item" onclick="toggleSub()">🩺 হেলথ কাউন্টার <span>▾</span></div>
+  <div class="sub" id="healthSub">
+    <div class="sub-item">💬 ইমো</div>
+    <div class="sub-item">📞 হোয়াটসঅ্যাপ</div>
+    <div class="sub-item">☎️ কল</div>
+  </div>
+  <div class="drawer-item">📢 নোটিশ বোর্ড</div>
+  <div class="drawer-item">ℹ️ মাদ্রাসা সম্পর্কে</div>
+  <div class="toggle-row">
+    <div class="tab active" id="lightBtn" onclick="setTheme('light',this)">☀️ লাইট</div>
+    <div class="tab" id="darkBtn" onclick="setTheme('dark',this)">🌙 ডার্ক</div>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div id="profile" class="glass">
+  <div class="profile-avatar">ম</div>
+  <div class="profile-field"><label>নাম</label><input value="মোঃ ছাত্র"></div>
+  <div class="profile-field"><label>নতুন পাসওয়ার্ড</label><input type="password" placeholder="••••••••"></div>
+  <div class="profile-field"><label>প্রোফাইল পিক</label><input type="file"></div>
+  <button class="btn-primary" onclick="closeAll()">সংরক্ষণ করুন</button>
+</div>
+
+<script>
+const items=["নিয়ম কানুন","ভর্তি আবেদন","মাসিক বেতন","অভিযোগ কেন্দ্র","মোট ছাত্র সংখ্যা","বিভাগীয় ছাত্র","জরুরী নোটিশ","পরীক্ষার ফলাফল"];
+document.getElementById('cardGrid').innerHTML = items.map(t=>`<div class="card-btn glass">${t}</div>`).join('');
+
+const sb = window.supabase.createClient(
+  'https://fraqjybeoozsqqbbmqem.supabase.co',
+  'sb_publishable_GjIDgcF6NT3p83PLRTLGww_5DDGRiO_'
+);
+
+async function doLogin(){
+  const identifier = document.getElementById('loginInput').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  if(!identifier || !password){ alert('মোবাইল/ইমেইল ও পাসওয়ার্ড দিন'); return; }
+  if(!identifier.includes('@')){ alert('মোবাইল নম্বর দিয়ে লগইন এখনো চালু হয়নি (SMS সার্ভিস লাগবে), আপাতত ইমেইল দিয়ে লগইন করুন।'); return; }
+  const {error} = await sb.auth.signInWithPassword({email: identifier, password});
+  if(error){ alert('লগইন ব্যর্থ: ' + error.message); return; }
+  showDash();
+  loadProfile();
+}
+
+async function doSignup(){
+  const name = document.getElementById('signupName').value.trim();
+  const identifier = document.getElementById('signupIdentifier').value.trim();
+  const password = document.getElementById('signupPassword').value;
+  const confirm = document.getElementById('signupConfirm').value;
+  if(!name || !identifier || !password){ alert('সব ফিল্ড পূরণ করুন'); return; }
+  if(password !== confirm){ alert('পাসওয়ার্ড মিলছে না'); return; }
+  if(!identifier.includes('@')){ alert('মোবাইল নম্বর দিয়ে সাইনআপ এখনো চালু হয়নি, আপাতত ইমেইল দিয়ে অ্যাকাউন্ট তৈরি করুন।'); return; }
+  const {data, error} = await sb.auth.signUp({email: identifier, password});
+  if(error){ alert('অ্যাকাউন্ট তৈরি ব্যর্থ: ' + error.message); return; }
+  if(data.user){
+    await sb.from('profiles').insert({id: data.user.id, full_name: name, email: identifier, role: 'student'});
+  }
+  alert('অ্যাকাউন্ট তৈরি হয়েছে! এখন লগইন করুন।');
+  toggleForm('login');
+}
+
+async function loadProfile(){
+  const {data:{user}} = await sb.auth.getUser();
+  if(!user) return;
+  const {data} = await sb.from('profiles').select('full_name').eq('id',user.id).single();
+  if(data && data.full_name){
+    document.querySelector('.hero p').innerText = 'আসসালামু আলাইকুম, ' + data.full_name;
+  }
+}
+
+window.addEventListener('load', async ()=>{
+  const {data:{session}} = await sb.auth.getSession();
+  if(session){ showDash(); loadProfile(); }
+});
+
+function toggleForm(which){
+  document.querySelector('.login-card:not(#signupCard)').style.display = which==='login' ? 'block':'none';
+  document.getElementById('signupCard').style.display = which==='signup' ? 'block':'none';
+}
+function setTab(el,type){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('loginLabel').innerText = type==='mobile' ? 'মোবাইল নম্বর' : 'ইমেইল';
+  document.getElementById('loginInput').placeholder = type==='mobile' ? '01XXXXXXXXX' : 'example@mail.com';
+}
+function showDash(){
+  document.getElementById('login').style.display='none';
+  document.getElementById('dash').style.display='block';
+}
+function toggleDrawer(){
+  document.getElementById('drawer').classList.toggle('open');
+  document.getElementById('overlay').style.display = document.getElementById('drawer').classList.contains('open') ? 'block':'none';
+}
+function toggleProfile(){
+  document.getElementById('profile').classList.toggle('open');
+  document.getElementById('overlay').style.display = document.getElementById('profile').classList.contains('open') ? 'block':'none';
+}
+function closeAll(){
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('profile').classList.remove('open');
+  document.getElementById('overlay').style.display='none';
+}
+function toggleSub(){document.getElementById('healthSub').classList.toggle('open');}
+function setTheme(mode,el){
+  document.documentElement.setAttribute('data-theme',mode);
+  document.querySelectorAll('.toggle-row .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+</script>
+</body>
+</html>
