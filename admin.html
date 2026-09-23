@@ -144,10 +144,16 @@ function renderOverview(pendingCount){
 }
 
 function renderUsersTabs(){
-  const rows = allProfiles.map(p=>
-    `<div class="row"><span>${p.full_name || '(নাম নেই)'} — ${p.phone || p.email || ''}</span>
-      <span class="pill ${p.role==='admin' ? 'paid':'pending'}">${p.role==='admin'?'এডমিন':'ছাত্র'}</span></div>`
-  ).join('') || '<div class="note">এখনো কোনো ইউজার সাইনআপ করেনি।</div>';
+  const rows = allProfiles.map(p=>{
+    const roleActionBtn = p.role==='admin'
+      ? `<span class="mini-btn" onclick="setUserRole('${p.id}','student')">এডমিন বাতিল</span>`
+      : `<span class="mini-btn" onclick="setUserRole('${p.id}','admin')">এডমিন বানান</span>`;
+    return `<div class="row"><span>${p.full_name || '(নাম নেই)'} — ${p.phone || p.email || ''}</span>
+      <span style="display:flex;gap:6px;align-items:center;">
+        <span class="pill ${p.role==='admin' ? 'paid':'pending'}">${p.role==='admin'?'এডমিন':'ছাত্র'}</span>
+        ${roleActionBtn}
+      </span></div>`;
+  }).join('') || '<div class="note">এখনো কোনো ইউজার সাইনআপ করেনি।</div>';
   panels.students = `
     <div class="panel glass">
       <h3>ছাত্র/ইউজার তালিকা (মোট ${allProfiles.length} জন)</h3>
@@ -164,14 +170,25 @@ function renderUsersTabs(){
     document.getElementById('panels').innerHTML = panels[activeTab.dataset.tab];
   }
 }
+async function setUserRole(id, role){
+  if(role==='admin' && !confirm('নিশ্চিত? এই ইউজার এখন থেকে পুরো এডমিন প্যানেল দেখতে ও পরিবর্তন করতে পারবে।')) return;
+  const {error} = await sb.from('profiles').update({role}).eq('id', id);
+  if(error){ alert('পরিবর্তন ব্যর্থ: '+error.message); return; }
+  const p = allProfiles.find(x=>x.id===id);
+  if(p) p.role = role;
+  renderUsersTabs();
+  renderOverview();
+}
 
 const tabs = [
   {id:'overview', label:'ওভারভিউ'},
   {id:'admissions', label:'ভর্তি আবেদন'},
   {id:'fees', label:'বেতন'},
+  {id:'payments', label:'পেমেন্ট যাচাই'},
   {id:'complaints', label:'অভিযোগ কেন্দ্র'},
   {id:'students', label:'ছাত্র তালিকা'},
   {id:'notice', label:'নোটিশ'},
+  {id:'results', label:'ফলাফল'},
   {id:'users', label:'ইউজার/পাসওয়ার্ড'},
   {id:'customize', label:'ড্যাশবোর্ড কাস্টমাইজ'},
 ];
@@ -218,6 +235,13 @@ fees:`
     <div class="note">এডমিন এখান থেকে ম্যানুয়ালি "পরিশোধিত" হিসেবে চিহ্নিত করতে পারবেন।</div>
   </div>`,
 
+payments:`
+  <div class="panel glass">
+    <h3>বিকাশ/নগদ পেমেন্ট যাচাই</h3>
+    <div id="paymentsList">লোড হচ্ছে...</div>
+    <div class="note">ছাত্র বিকাশ/নগদে টাকা পাঠিয়ে ট্রানজেকশন আইডি জমা দিলে এখানে দেখা যাবে। নিজে বিকাশ/নগদ অ্যাপে গিয়ে টাকা পাওয়া গেছে কিনা যাচাই করে তারপর "যাচাই করুন" চাপবেন।</div>
+  </div>`,
+
 complaints:`
   <div class="panel glass">
     <h3>অভিযোগসমূহ</h3>
@@ -241,6 +265,19 @@ users:`
   <div class="panel glass">
     <h3>ইউজার ব্যবস্থাপনা</h3>
     <div class="note">পাসওয়ার্ড রিসেট এখনো এখান থেকে করা যায় না — Supabase Dashboard → Authentication → Users থেকে ম্যানুয়ালি করা যাবে।</div>
+  </div>`,
+
+results:`
+  <div class="panel glass">
+    <h3>নতুন ফলাফল প্রকাশ করুন</h3>
+    <div class="field"><label>ছাত্র বাছাই করুন</label><select id="resultStudentSelect"></select></div>
+    <div class="field"><label>পরীক্ষার নাম</label><input id="resultExamName" placeholder="যেমনঃ বার্ষিক পরীক্ষা ২০২৬"></div>
+    <div class="field"><label>ফলাফলের সারাংশ</label><input id="resultSummary" placeholder="যেমনঃ মোট নম্বরঃ ৯৫০/১০০০, গ্রেডঃ A+"></div>
+    <button class="btn-primary" onclick="publishResult()">প্রকাশ করুন</button>
+  </div>
+  <div class="panel glass">
+    <h3>প্রকাশিত ফলাফলসমূহ</h3>
+    <div id="resultsList">লোড হচ্ছে...</div>
   </div>`,
 
 customize:`
@@ -368,6 +405,67 @@ async function deleteNotice(id){
   loadNotices();
 }
 
+// ===== পেমেন্ট যাচাই =====
+async function loadPayments(){
+  const {data, error} = await sb.from('payment_submissions').select('*, profiles(full_name), fees(month, amount)').eq('status','pending').order('submitted_at',{ascending:false});
+  const el = document.getElementById('paymentsList');
+  if(!el) return;
+  if(error){ el.innerHTML = 'লোড করতে সমস্যা হয়েছে: '+error.message; return; }
+  if(!data || data.length===0){ el.innerHTML = '<div class="note">যাচাইয়ের অপেক্ষায় কোনো পেমেন্ট নেই।</div>'; return; }
+  el.innerHTML = data.map(p=>{
+    const name = p.profiles ? p.profiles.full_name : 'অজানা';
+    const feeInfo = p.fees ? `${p.fees.month} — ৳${p.fees.amount}` : '';
+    return `<div class="row" style="flex-direction:column;align-items:stretch;">
+      <div>${name} — ${feeInfo}</div>
+      <div class="note">মাধ্যম: ${p.method||'—'} | ট্রানজেকশন আইডি: ${p.transaction_id}</div>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <span class="mini-btn" onclick="verifyPayment('${p.id}','${p.fee_id}',true)">✅ যাচাই করুন</span>
+        <span class="mini-btn" onclick="verifyPayment('${p.id}','${p.fee_id}',false)">❌ প্রত্যাখ্যান</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+async function verifyPayment(subId, feeId, approve){
+  const {error:e1} = await sb.from('payment_submissions').update({status: approve?'verified':'rejected'}).eq('id', subId);
+  if(e1){ alert('আপডেট ব্যর্থ: '+e1.message); return; }
+  if(approve){
+    const {error:e2} = await sb.from('fees').update({status:'paid', paid_at:new Date().toISOString()}).eq('id', feeId);
+    if(e2){ alert('বেতন আপডেট ব্যর্থ: '+e2.message); return; }
+  }
+  loadPayments();
+  loadFees();
+}
+
+// ===== ফলাফল =====
+async function loadResults(){
+  const sel = document.getElementById('resultStudentSelect');
+  if(sel){ sel.innerHTML = allProfiles.filter(p=>p.role==='student').map(p=>`<option value="${p.id}">${p.full_name||p.phone||p.email}</option>`).join(''); }
+  const {data, error} = await sb.from('results').select('*, profiles(full_name)').order('published_at',{ascending:false});
+  const el = document.getElementById('resultsList');
+  if(!el) return;
+  if(error){ el.innerHTML = 'লোড করতে সমস্যা হয়েছে: '+error.message; return; }
+  if(!data || data.length===0){ el.innerHTML = '<div class="note">এখনো কোনো ফলাফল প্রকাশ হয়নি।</div>'; return; }
+  el.innerHTML = data.map(r=>{
+    const name = r.profiles ? r.profiles.full_name : 'অজানা';
+    return `<div class="row"><span>${r.exam_name} — ${name}</span><span class="mini-btn" onclick="deleteResult('${r.id}')">🗑️ মুছুন</span></div>`;
+  }).join('');
+}
+async function publishResult(){
+  const student_id = document.getElementById('resultStudentSelect').value;
+  const exam_name = document.getElementById('resultExamName').value.trim();
+  const summary = document.getElementById('resultSummary').value.trim();
+  if(!student_id || !exam_name){ alert('ছাত্র ও পরীক্ষার নাম দিন'); return; }
+  const {error} = await sb.from('results').insert({student_id, exam_name, summary});
+  if(error){ alert('প্রকাশ করতে সমস্যা: '+error.message); return; }
+  document.getElementById('resultExamName').value=''; document.getElementById('resultSummary').value='';
+  loadResults();
+}
+async function deleteResult(id){
+  const {error} = await sb.from('results').delete().eq('id', id);
+  if(error){ alert('মুছতে সমস্যা: '+error.message); return; }
+  loadResults();
+}
+
 // ===== ড্যাশবোর্ড কাস্টমাইজ =====
 async function loadCustomize(){
   const {data, error} = await sb.from('dashboard_items').select('*').order('sort_order',{ascending:true});
@@ -390,8 +488,10 @@ function showTab(id,el){
   if(id==='customize') loadCustomize();
   if(id==='admissions') loadAdmissions();
   if(id==='fees') loadFees();
+  if(id==='payments') loadPayments();
   if(id==='complaints') loadComplaints();
   if(id==='notice') loadNotices();
+  if(id==='results') loadResults();
 }
 showTab('overview', document.querySelector('.tab-chip'));
 

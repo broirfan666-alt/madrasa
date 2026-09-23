@@ -109,12 +109,14 @@ body{
   <div class="panel glass">
     <h3>প্রয়োজনীয় ছবি আপলোড</h3>
     <div class="upload-row">
-      <div class="upload-box" id="birthBox" onclick="fakeUpload('birthBox')">
+      <div class="upload-box" id="birthBox" onclick="document.getElementById('birthFile').click()">
         <div class="ic">📄</div><p>জন্ম নিবন্ধনের ছবি</p>
       </div>
-      <div class="upload-box" id="photoBox" onclick="fakeUpload('photoBox')">
+      <div class="upload-box" id="photoBox" onclick="document.getElementById('photoFile').click()">
         <div class="ic">🖼️</div><p>পাসপোর্ট সাইজ ছবি</p>
       </div>
+      <input type="file" id="birthFile" accept="image/*" style="display:none;" onchange="handleFileSelect(this,'birthBox')">
+      <input type="file" id="photoFile" accept="image/*" style="display:none;" onchange="handleFileSelect(this,'photoBox')">
     </div>
     <div class="note">ছবি স্পষ্ট ও পরিষ্কার হতে হবে, JPG/PNG ফরম্যাট, সর্বোচ্চ ৫MB।</div>
   </div>
@@ -131,6 +133,7 @@ const sb = window.supabase.createClient(
   'sb_publishable_GjIDgcF6NT3p83PLRTLGww_5DDGRiO_'
 );
 let currentUserId = null;
+let uploadedFiles = {}; // birthBox / photoBox -> File object
 (async ()=>{
   const {data:{session}} = await sb.auth.getSession();
   if(!session){ alert('আবেদন করতে হলে আগে লগইন করুন'); location.href = 'index.html'; return; }
@@ -142,16 +145,33 @@ function setTheme(mode,el){
   document.querySelectorAll('.theme-toggle .tt-btn').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
 }
-function fakeUpload(id){
-  const box=document.getElementById(id);
+function handleFileSelect(input, boxId){
+  const file = input.files[0];
+  if(!file) return;
+  if(file.size > 5*1024*1024){ alert('ফাইলের সাইজ ৫MB-এর বেশি হতে পারবে না'); input.value=''; return; }
+  uploadedFiles[boxId] = file;
+  const box = document.getElementById(boxId);
   box.classList.add('filled');
-  box.querySelector('p').innerText='✓ ছবি সংযুক্ত হয়েছে';
-  box.querySelector('.ic').innerText='✅';
+  box.querySelector('p').innerText = '✓ ' + file.name;
+  box.querySelector('.ic').innerText = '✅';
+}
+async function uploadFileToStorage(file, prefix){
+  const ext = file.name.split('.').pop();
+  const path = `${prefix}-${currentUserId}-${Date.now()}.${ext}`;
+  const {error} = await sb.storage.from('documents').upload(path, file);
+  if(error) throw error;
+  const {data} = sb.storage.from('documents').getPublicUrl(path);
+  return data.publicUrl;
 }
 async function submitForm(){
   if(!currentUserId){ alert('লগইন যাচাই হচ্ছে, একটু পর আবার চেষ্টা করুন'); return; }
   const full_name = document.getElementById('admFullName').value.trim();
   if(!full_name){ alert('ছাত্রের নাম দিন'); return; }
+  let birth_cert_url = null, photo_url = null;
+  try{
+    if(uploadedFiles.birthBox) birth_cert_url = await uploadFileToStorage(uploadedFiles.birthBox, 'birth');
+    if(uploadedFiles.photoBox) photo_url = await uploadFileToStorage(uploadedFiles.photoBox, 'photo');
+  }catch(e){ alert('ছবি আপলোড ব্যর্থ: '+e.message); return; }
   const row = {
     student_id: currentUserId,
     full_name,
@@ -161,7 +181,8 @@ async function submitForm(){
     mother_name: document.getElementById('admMother').value.trim(),
     guardian_phone: document.getElementById('admGuardianPhone').value.trim(),
     address: document.getElementById('admAddress').value.trim(),
-    status: 'pending'
+    status: 'pending',
+    birth_cert_url, photo_url
   };
   const {error} = await sb.from('admissions').insert(row);
   if(error){ alert('আবেদন জমা ব্যর্থ: ' + error.message); return; }
