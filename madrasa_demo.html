@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>হামিদুল উলূম মাদ্রাসা - ডেমো</title>
+<style>
+:root{
+  --bg1:#a9b98a; --bg2:#c3cf9f; --text-dark:#141414; --panel-bg:rgba(120,125,90,0.5);
+  --card-bg:rgba(255,255,255,0.08); --input-bg:rgba(255,255,255,0.75); --accent:#2f8fe0;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+body.dark{
+  --bg1:#1c2230; --bg2:#0d0f16; --text-dark:#eef0f5; --panel-bg:rgba(30,34,46,0.65);
+  --card-bg:rgba(255,255,255,0.06); --input-bg:rgba(255,255,255,0.12);
+}
+*{box-sizing:border-box;}
+html,body{height:100%;margin:0;}
+body{background:radial-gradient(circle at 30% 0%,var(--bg2),var(--bg1));font-family:"Noto Sans Bengali","Segoe UI",sans-serif;
+  display:flex;justify-content:center;padding:22px 10px 40px;transition:background .3s;}
+.wrap{width:100%;max-width:400px;}
+.modebar{display:flex;justify-content:center;align-items:center;gap:10px;margin-bottom:14px;font-size:13px;color:var(--text-dark);font-weight:700;}
+.switch{position:relative;width:46px;height:24px;background:rgba(0,0,0,0.35);border-radius:20px;cursor:pointer;}
+.knob{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;}
+.switch.on{background:var(--accent);}
+.switch.on .knob{left:24px;}
+
+/* ---- glass headline (blur, not flat color) ---- */
+.glass-pill{
+  background:rgba(255,255,255,0.14);
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,0.35);
+  box-shadow:0 4px 14px rgba(0,0,0,0.15), inset 0 0 12px rgba(255,255,255,0.15);
+  color:var(--text-dark);
+}
+
+.phone{background:linear-gradient(160deg,rgba(255,255,255,0.10),rgba(255,255,255,0.03));
+  border:3px solid rgba(15,15,15,0.9);border-radius:40px;padding:14px 12px 24px;
+  box-shadow:0 20px 40px rgba(0,0,0,0.25);backdrop-filter:blur(6px);min-height:600px;position:relative;overflow:hidden;}
+
+/* ---- toolbar ---- */
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:6px;}
+.avatar{width:38px;height:38px;border-radius:50%;flex:none;overflow:hidden;cursor:pointer;
+  background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.5);
+  display:flex;align-items:center;justify-content:center;font-size:18px;}
+.avatar img{width:100%;height:100%;object-fit:cover;}
+.brand{flex:1;text-align:center;font-weight:900;font-size:14.5px;letter-spacing:0.2px;padding:8px 4px;
+  border-radius:14px;background:rgba(255,255,255,0.16);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.35);}
+.brand span{background:linear-gradient(90deg,#ff6a3d,#ffd23d,#3ddc84,#2f8fe0,#c04dff);
+  -webkit-background-clip:text;background-clip:text;color:transparent;}
+.hamburger{width:38px;height:38px;border-radius:12px;flex:none;cursor:pointer;
+  background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.5);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;}
+.hamburger span{width:18px;height:2.4px;background:var(--text-dark);border-radius:2px;}
+
+.headbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.backbtn{width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,0.4);
+  background:rgba(255,255,255,0.15);backdrop-filter:blur(8px);color:var(--text-dark);font-weight:900;
+  cursor:pointer;flex:none;display:none;align-items:center;justify-content:center;}
+.title-pill{flex:1;text-align:center;font-weight:800;font-size:17px;border-radius:26px;padding:9px 6px;}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.menucard{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px;border-radius:18px;
+  background:var(--card-bg);border:1px solid rgba(255,255,255,0.2);cursor:pointer;transition:transform .08s;}
+.menucard:active{transform:scale(0.94);}
+.glass-icon{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,0.16);backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,0.45);box-shadow:inset 0 0 10px rgba(255,255,255,0.35),0 4px 10px rgba(0,0,0,0.18);
+  display:flex;align-items:center;justify-content:center;font-size:23px;}
+.menulabel{font-size:12px;font-weight:700;color:var(--text-dark);text-align:center;}
+
+.panel{background:var(--panel-bg);border:1px solid rgba(0,0,0,0.35);border-radius:16px;padding:12px;min-height:340px;color:var(--text-dark);}
+.tabs{display:flex;gap:10px;margin-bottom:12px;}
+.tab-btn{flex:1;padding:9px 4px;border:none;border-radius:20px;font-weight:800;font-size:13.5px;cursor:pointer;}
+.tab-btn.active{outline:3px solid var(--accent);}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th,td{border:1px solid rgba(0,0,0,0.35);padding:6px 3px;text-align:center;color:var(--text-dark);}
+th{font-size:11px;} td{background:rgba(255,255,255,0.06);font-weight:600;}
+.rank-1{color:#c99a30;font-weight:900;} .rank-2{color:#aaa;font-weight:900;} .rank-3{color:#c08a4a;font-weight:900;}
+
+.item-row{background:var(--card-bg);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:9px;
+  margin-bottom:8px;color:var(--text-dark);font-size:13px;display:flex;justify-content:space-between;gap:8px;align-items:center;}
+.item-row>div{overflow-wrap:anywhere;word-break:break-word;min-width:0;}
+.circle-num{min-width:24px;height:24px;padding:0 5px;border-radius:12px;background:#fff;color:#111;font-weight:900;
+  display:flex;align-items:center;justify-content:center;flex:none;font-size:11px;}
+textarea,input[type=text],input[type=number],select{width:100%;border-radius:10px;border:1px solid rgba(0,0,0,0.3);
+  padding:8px;font-family:inherit;font-size:12.5px;background:var(--input-bg);color:var(--text-dark);}
+.field{margin-bottom:9px;} .field label{font-size:11.5px;font-weight:800;display:block;margin-bottom:3px;color:var(--text-dark);}
+input[type=file]{width:100%;font-size:11.5px;color:var(--text-dark);background:var(--input-bg);border-radius:10px;border:1px solid rgba(0,0,0,0.3);padding:6px;}
+.admin-box{margin-top:10px;border-top:1px dashed rgba(255,255,255,0.3);padding-top:10px;}
+.small-btn{padding:8px 12px;border:none;border-radius:14px;font-weight:800;font-size:12px;cursor:pointer;margin-top:6px;
+  background:rgba(255,255,255,0.2);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.4);color:var(--text-dark);}
+.pay-status{font-weight:900;} .pay-approved{color:#5fd15f;} .pay-pending{color:#e0a24a;}
+.hint{text-align:center;color:var(--text-dark);font-size:12.5px;margin-bottom:10px;opacity:0.85;}
+.section-h{font-weight:900;font-size:12.5px;margin:10px 0 6px;color:var(--text-dark);}
+
+/* modals */
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,0.55);display:none;align-items:flex-start;justify-content:center;
+  padding-top:60px;z-index:20;border-radius:37px;}
+.overlay.show{display:flex;}
+.modal{width:88%;border-radius:20px;padding:16px;color:var(--text-dark);}
+.modal h3{margin:0 0 10px;font-size:16px;}
+.closebtn{float:right;cursor:pointer;font-weight:900;font-size:16px;}
+.menu-item{padding:12px 8px;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px;margin-bottom:8px;
+  display:flex;align-items:center;gap:10px;}
+.menu-item:active{transform:scale(0.97);}
+.help-icons{display:flex;gap:14px;justify-content:center;margin-top:10px;}
+.help-icons div{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:24px;cursor:pointer;}
+.profile-photo{width:80px;height:80px;border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;
+  justify-content:center;font-size:34px;overflow:hidden;cursor:pointer;}
+.profile-photo img{width:100%;height:100%;object-fit:cover;}
+
+/* login screen */
+#loginScreen{position:fixed;inset:0;background:radial-gradient(circle at 30% 0%,var(--bg2),var(--bg1));
+  display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;}
+.login-card{width:100%;max-width:340px;border-radius:22px;padding:26px 20px;color:var(--text-dark);}
+.login-card h2{text-align:center;margin:0 0 6px;font-size:20px;}
+.login-card p{text-align:center;font-size:12.5px;opacity:0.8;margin:0 0 16px;}
+.login-tabs{display:flex;gap:8px;margin-bottom:12px;}
+.login-tabs button{flex:1;padding:8px;border:none;border-radius:14px;font-weight:800;font-size:12.5px;cursor:pointer;}
+.login-tabs button.active{outline:2px solid rgba(255,255,255,0.6);}
+
+/* donut */
+.donut-wrap{display:flex;align-items:center;gap:16px;padding:12px;border-radius:16px;margin-bottom:14px;}
+.donut{width:100px;height:100px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:16px;color:var(--text-dark);}
+.donut span{background:var(--panel-bg);width:74px;height:74px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-card glass-pill">
+    <div style="font-size:46px;text-align:center;margin-bottom:6px;">🕌</div>
+    <h2>হামিদুল উলূম মাদ্রাসা</h2>
+    <p>লগইন করুন</p>
+    <div class="login-tabs">
+      <button class="glass-pill active" id="tabEmail" onclick="setLoginType('email')">ইমেইল</button>
+      <button class="glass-pill" id="tabPhone" onclick="setLoginType('phone')">ফোন নম্বর</button>
+    </div>
+    <div class="field"><label id="loginIdLabel">ইমেইল</label><input type="text" id="loginId" placeholder="আপনার ইমেইল লিখুন"></div>
+    <div class="field"><label>পাসওয়ার্ড</label><input type="text" id="loginPass" placeholder="পাসওয়ার্ড"></div>
+    <button class="small-btn glass-pill" style="width:100%;" id="authSubmitBtn" onclick="doAuth()">লগইন করুন</button>
+    <div id="loginError" style="color:#e0435b;font-size:12px;text-align:center;margin-top:8px;min-height:14px;"></div>
+    <p style="text-align:center;font-size:12px;margin-top:4px;">নতুন ব্যবহারকারী? <a href="#" id="authModeLink" onclick="toggleAuthMode();return false;" style="color:inherit;font-weight:900;">নতুন আইডি তৈরি করুন</a></p>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="hint" id="topHint">টগল করে ইউজার/এডমিন ভিউ বদলান</div>
+  <div class="modebar">
+    <span>ইউজার</span>
+    <div class="switch" id="modeSwitch"><div class="knob"></div></div>
+    <span>এডমিন</span>
+  </div>
+
+  <div class="phone">
+    <div class="toolbar">
+      <div class="avatar" id="avatarBtn" onclick="openModal('profileModal')">🕌</div>
+      <div class="brand"><span>হামিদুল উলূম মাদ্রাসা</span></div>
+      <div class="hamburger" id="notifBtn" onclick="openModal('notifModal')" style="position:relative;font-size:17px;">🔔
+        <span id="notifBadge" style="position:absolute;top:-4px;right:-4px;background:#e0435b;color:#fff;font-size:9.5px;font-weight:900;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;">3</span>
+      </div>
+      <div class="hamburger" onclick="openModal('menuModal')"><span></span><span></span><span></span></div>
+    </div>
+    <div class="headbar">
+      <button class="backbtn" id="backBtn">←</button>
+      <div class="title-pill glass-pill" id="titlePill">হোম</div>
+    </div>
+    <div id="content"></div>
+
+    <!-- profile modal -->
+    <div class="overlay" id="profileModal">
+      <div class="modal glass-pill">
+        <span class="closebtn" onclick="closeModal('profileModal')">✕</span>
+        <h3>আমার প্রোফাইল</h3>
+        <div class="profile-photo glass-pill" id="profilePhotoDisp">📷</div>
+        <div class="field"><label>নাম</label><input type="text" id="profName" value="মুহাম্মদ শিহাব"></div>
+        <div class="field"><label>ইমেইল / ফোন</label><input type="text" id="profContact" value="user@example.com" disabled></div>
+        <div class="field"><label>নতুন পাসওয়ার্ড</label><input type="text" placeholder="পরিবর্তন করতে চাইলে লিখুন"></div>
+        <button class="small-btn glass-pill" onclick="playTick();closeModal('profileModal')">💾 সংরক্ষণ করুন</button>
+      </div>
+    </div>
+
+    <!-- hamburger menu modal -->
+    <div class="overlay" id="menuModal">
+      <div class="modal glass-pill">
+        <span class="closebtn" onclick="closeModal('menuModal')">✕</span>
+        <h3>মেনু</h3>
+        <div class="menu-item glass-pill" onclick="closeModal('menuModal');openModal('helpModal')">🆘 হেল্প কাউন্টার</div>
+        <div class="menu-item glass-pill" onclick="closeModal('menuModal');openModal('settingsModal')">⚙️ সেটিংস</div>
+        <div class="menu-item glass-pill" onclick="doLogout()">🚪 লগ আউট</div>
+      </div>
+    </div>
+
+    <!-- settings modal -->
+    <div class="overlay" id="settingsModal">
+      <div class="modal glass-pill">
+        <span class="closebtn" onclick="closeModal('settingsModal')">✕</span>
+        <h3>সেটিংস</h3>
+        <div class="menu-item glass-pill" onclick="toggleDark()">🌓 <span id="darkLabel">ডার্ক মোড চালু করুন</span></div>
+
+        <div class="menu-item glass-pill" style="flex-direction:column;align-items:flex-start;">
+          <span>🎨 থিম কালার</span>
+          <div style="display:flex;gap:10px;margin-top:8px;align-items:center;">
+            <div onclick="setAccent('#2f8fe0')" style="width:26px;height:26px;border-radius:50%;background:#2f8fe0;cursor:pointer;border:2px solid rgba(255,255,255,0.6);"></div>
+            <div onclick="setAccent('#e05b8c')" style="width:26px;height:26px;border-radius:50%;background:#e05b8c;cursor:pointer;border:2px solid rgba(255,255,255,0.6);"></div>
+            <div onclick="setAccent('#3fb37f')" style="width:26px;height:26px;border-radius:50%;background:#3fb37f;cursor:pointer;border:2px solid rgba(255,255,255,0.6);"></div>
+            <div onclick="setAccent('#e0913f')" style="width:26px;height:26px;border-radius:50%;background:#e0913f;cursor:pointer;border:2px solid rgba(255,255,255,0.6);"></div>
+            <div onclick="setAccent('#9057e0')" style="width:26px;height:26px;border-radius:50%;background:#9057e0;cursor:pointer;border:2px solid rgba(255,255,255,0.6);"></div>
+            <input type="color" value="#2f8fe0" onchange="setAccent(this.value)" style="width:32px;height:26px;border:none;background:none;padding:0;cursor:pointer;">
+          </div>
+          <div style="font-size:10.5px;opacity:0.75;margin-top:4px;">নিজের পছন্দমতো যেকোনো কালার বেছে নিন</div>
+        </div>
+
+        <div class="menu-item glass-pill" style="flex-direction:column;align-items:flex-start;">
+          <span>🔊 ট্যাপ সাউন্ড</span>
+          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+            <button class="tab-btn glass-pill" id="snd_tick" onclick="setSoundMode('tick')" style="flex:none;padding:7px 12px;">টিক</button>
+            <button class="tab-btn glass-pill" id="snd_pop" onclick="setSoundMode('pop')" style="flex:none;padding:7px 12px;">পপ</button>
+            <button class="tab-btn glass-pill" id="snd_soft" onclick="setSoundMode('soft')" style="flex:none;padding:7px 12px;">সফট</button>
+            <button class="tab-btn glass-pill" id="snd_off" onclick="setSoundMode('off')" style="flex:none;padding:7px 12px;">বন্ধ</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- notifications modal -->
+    <div class="overlay" id="notifModal">
+      <div class="modal glass-pill">
+        <span class="closebtn" onclick="closeModal('notifModal')">✕</span>
+        <h3>নোটিফিকেশন</h3>
+        <div class="item-row" style="align-items:flex-start;"><div style="flex:1">আপনার ভর্তি আবেদন এডমিন অনুমোদন করেছেন
+          <div style="font-size:10.5px;opacity:0.7;margin-top:3px;">উৎস: ভর্তি আবেদন বিভাগ</div></div></div>
+        <div class="item-row" style="align-items:flex-start;"><div style="flex:1">এই মাসের বেতন Approve করা হয়েছে
+          <div style="font-size:10.5px;opacity:0.7;margin-top:3px;">উৎস: মাসিক বেতন বিভাগ</div></div></div>
+        <div class="item-row" style="align-items:flex-start;"><div style="flex:1">নতুন একটি জরুরী নোটিশ যুক্ত হয়েছে
+          <div style="font-size:10.5px;opacity:0.7;margin-top:3px;">উৎস: জরুরী নোটিশ বিভাগ</div></div></div>
+      </div>
+    </div>
+
+    <!-- help modal -->
+    <div class="overlay" id="helpModal">
+      <div class="modal glass-pill">
+        <span class="closebtn" onclick="closeModal('helpModal')">✕</span>
+        <h3>হেল্প কাউন্টার</h3>
+        <div class="help-icons">
+          <div class="glass-pill" onclick="playTick()">🟢</div>
+          <div class="glass-pill" onclick="playTick()">🔵</div>
+          <div class="glass-pill" onclick="playTick()">📞</div>
+        </div>
+        <p style="text-align:center;font-size:12px;margin-top:8px;">WhatsApp · Imo · কল করুন</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ---------- sound ---------- */
+let audioCtx;
+let soundMode = "tick";
+function playTick(){
+  if(soundMode==="off") return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    const t = audioCtx.currentTime;
+    const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+    if(soundMode==="pop"){
+      o.type="sine"; o.frequency.setValueAtTime(600,t); o.frequency.exponentialRampToValueAtTime(150,t+0.09);
+      g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(0.2,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+0.12);
+      o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t+0.13);
+    } else if(soundMode==="soft"){
+      o.type="sine"; o.frequency.setValueAtTime(500,t);
+      g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(0.08,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+0.15);
+      o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t+0.16);
+    } else {
+      o.type="square"; o.frequency.setValueAtTime(1800,t);
+      g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(0.15,t+0.003);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+0.045);
+      o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t+0.05);
+    }
+  }catch(e){}
+}
+function setSoundMode(m){
+  soundMode = m;
+  ["tick","pop","soft","off"].forEach(k=>{
+    const el = document.getElementById("snd_"+k);
+    if(el) el.classList.toggle("active", k===m);
+  });
+  playTick();
+}
+
+/* ---------- Supabase ---------- */
+const SUPABASE_URL = "https://wmcimvpzytmqjrnoshzs.supabase.co";
+const SUPABASE_KEY = "sb_publishable_mk7SBEQzqbmdJofbS9hzmw_0qoUvdND";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const DATA_ROW_ID = 1;
+
+/* ---------- login / signup ---------- */
+let loginType = "email";
+let authMode = "login"; // "login" | "signup"
+
+function setLoginType(t){
+  loginType = t; playTick();
+  document.getElementById("tabEmail").classList.toggle("active", t==="email");
+  document.getElementById("tabPhone").classList.toggle("active", t==="phone");
+  document.getElementById("loginIdLabel").textContent = t==="email" ? "ইমেইল" : "ফোন নম্বর";
+  document.getElementById("loginId").placeholder = t==="email" ? "আপনার ইমেইল লিখুন" : "আপনার ফোন নম্বর লিখুন";
+}
+
+function toggleAuthMode(){
+  playTick();
+  authMode = authMode === "login" ? "signup" : "login";
+  document.getElementById("authSubmitBtn").textContent = authMode === "login" ? "লগইন করুন" : "নতুন আইডি তৈরি করুন";
+  document.getElementById("authModeLink").textContent = authMode === "login" ? "নতুন আইডি তৈরি করুন" : "আগের আইডিতে লগইন করুন";
+  setLoginError("");
+}
+
+function setLoginError(msg){
+  const el = document.getElementById("loginError");
+  if(el) el.textContent = msg;
+}
+
+async function doAuth(){
+  playTick();
+  if(loginType === "phone"){
+    setLoginError("ফোন নম্বর দিয়ে লগইন এখনো চালু করা হয়নি — অনুগ্রহ করে ইমেইল ব্যবহার করুন।");
+    return;
+  }
+  const email = document.getElementById("loginId").value.trim();
+  const password = document.getElementById("loginPass").value;
+  if(!email || !password){ setLoginError("ইমেইল ও পাসওয়ার্ড দিন।"); return; }
+  setLoginError("অপেক্ষা করুন...");
+
+  const result = authMode === "login"
+    ? await sb.auth.signInWithPassword({ email, password })
+    : await sb.auth.signUp({ email, password });
+
+  if(result.error){ setLoginError(result.error.message); return; }
+  if(authMode === "signup" && !result.data.session){
+    setLoginError("আইডি তৈরি হয়েছে। ইমেইল ভেরিফাই করে লগইন করুন।");
+    return;
+  }
+  await afterLogin();
+}
+
+async function afterLogin(){
+  setLoginError("");
+  document.getElementById("loginScreen").style.display = "none";
+  await loadAppData();
+  render();
+}
+
+async function doLogout(){
+  playTick(); closeModal("menuModal");
+  await sb.auth.signOut();
+  document.getElementById("loginScreen").style.display = "flex";
+}
+
+/* auto-login if a Supabase session already exists (e.g. after refresh) */
+sb.auth.getSession().then(({data})=>{
+  if(data && data.session){ afterLogin(); }
+});
+
+/* ---------- shared app data, synced to Supabase ---------- */
+async function loadAppData(){
+  try{
+    const { data, error } = await sb.from("app_data").select("*").eq("id", DATA_ROW_ID).maybeSingle();
+    if(error) throw error;
+    if(data){
+      rulesData = data.rules ?? rulesData;
+      noticeText = data.notice_text ?? noticeText;
+      deptCounts = data.dept_counts ?? deptCounts;
+      salaryList = data.salary_list ?? salaryList;
+      complaintsList = data.complaints_list ?? complaintsList;
+      resultData = data.result_data ?? resultData;
+    } else {
+      await saveAppData();
+    }
+  }catch(e){ console.error("Supabase load error:", e); }
+}
+
+async function saveAppData(){
+  try{
+    await sb.from("app_data").upsert({
+      id: DATA_ROW_ID,
+      rules: rulesData,
+      notice_text: noticeText,
+      dept_counts: deptCounts,
+      salary_list: salaryList,
+      complaints_list: complaintsList,
+      result_data: resultData
+    });
+  }catch(e){ console.error("Supabase save error:", e); }
+}
+
+/* ---------- modal ---------- */
+function openModal(id){
+  playTick();
+  document.getElementById(id).classList.add("show");
+  if(id==="notifModal"){ const b=document.getElementById("notifBadge"); if(b) b.style.display="none"; }
+}
+function closeModal(id){ document.getElementById(id).classList.remove("show"); }
+
+/* ---------- dark mode ---------- */
+function toggleDark(){
+  playTick();
+  document.body.classList.toggle("dark");
+  const on = document.body.classList.contains("dark");
+  document.getElementById("darkLabel").textContent = on ? "হোয়াইট মোড চালু করুন" : "ডার্ক মোড চালু করুন";
+}
+function setAccent(c){ document.documentElement.style.setProperty('--accent', c); playTick(); }
+
+/* ---------- state ---------- */
+let isAdmin = false;
+let current = "home";
+const menu = [
+  {id:"rules", icon:"📜", label:"নিয়ম কানুন"},
+  {id:"admission", icon:"📝", label:"ভর্তি আবেদন"},
+  {id:"salary", icon:"💰", label:"মাসিক বেতন"},
+  {id:"complaints", icon:"📢", label:"অভিযোগ কেন্দ্র"},
+  {id:"total", icon:"👥", label:"মোট ছাত্র সংখ্যা"},
+  {id:"dept", icon:"🏫", label:"বিভাগীয় ছাত্র"},
+  {id:"notice", icon:"🔔", label:"জরুরী নোটিশ"},
+  {id:"result", icon:"📊", label:"পরীক্ষার ফলাফল"}
+];
+
+let rulesData = ["সকলের সঙ্গে ভালো ব্যবহার করতে হবে","সময়মতো ক্লাসে উপস্থিত থাকতে হবে","নিয়মিত বেতন পরিশোধ করতে হবে"];
+let noticeText = "আসসালামু আলাইকুম, এত দ্বারা অবগতির জন্য জানানো যাচ্ছে যে আমাদের মাদ্রাসায় নতুন একজন শিক্ষক নিয়োগ করা হবে ইত্যাদি।";
+let deptCounts = {"নূরানী":100,"নাজেরা":100,"হিফজ":100};
+let salaryList = [
+  {name:"সাইমন", month:"সেপ্টেম্বর", status:"pending"},
+  {name:"আকিরা", month:"সেপ্টেম্বর", status:"approved", date:"০৫/০৯/২০২৬"}
+];
+let complaintsList = ["ক্লাসরুমের ফ্যান নষ্ট","নতুন বই এখনো পাওয়া যায়নি"];
+let resultData = {
+  "নূরানী":[{name:"সাইমন",til:70,taj:50},{name:"আকিরা",til:70,taj:50},{name:"জাকারিয়া",til:70,taj:50},{name:"শিহাব",til:70,taj:50}],
+  "নাজেরা":[{name:"ইমরান",til:68,taj:47},{name:"সাদিয়া",til:74,taj:49}],
+  "হিফজ":[{name:"তানভীর",til:65,taj:45},{name:"রাফি",til:72,taj:48},{name:"ইয়াসিন",til:60,taj:40}]
+};
+let resultTab = "";
+
+function esc(s){return (s+"").replace(/</g,"&lt;");}
+
+function renderHome(){
+  document.getElementById("titlePill").textContent = "হোম";
+  document.getElementById("backBtn").style.display = "none";
+  let html = "";
+  if(isAdmin){
+    const totalStudents = Object.values(deptCounts).reduce((a,b)=>a+parseInt(b),0);
+    const paidPct = Math.round((salaryList.filter(s=>s.status==="approved").length / salaryList.length) * 100);
+    html += `<div class="donut-wrap glass-pill">
+      <div class="donut" style="background:conic-gradient(#4fd15f ${paidPct}%, rgba(255,255,255,0.15) ${paidPct}% 100%);">
+        <span>${paidPct}%</span>
+      </div>
+      <div>
+        <div style="font-weight:900;font-size:14px;">মোট ছাত্র: ${totalStudents} জন</div>
+        <div style="font-size:12.5px;margin-top:4px;">এই মাসের বেতন পরিশোধ করেছে ${paidPct}% ছাত্র</div>
+      </div>
+    </div>`;
+  }
+  html += '<div class="grid">';
+  menu.forEach(m=>{
+    html += `<div class="menucard" onclick="openScreen('${m.id}')">
+      <div class="glass-icon">${m.icon}</div><div class="menulabel">${m.label}</div></div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+function renderRules(){
+  let html = '<div class="panel">';
+  rulesData.forEach((r,i)=>{ html += `<div class="item-row"><div class="circle-num">${i+1}</div><div style="flex:1">${esc(r)}</div></div>`; });
+  if(isAdmin){
+    html += `<div class="admin-box"><label class="section-h">নতুন নিয়ম যোগ করুন</label>
+      <input type="text" id="newRule" placeholder="যেমন: হোমওয়ার্ক জমা দিতে হবে" onkeypress="if(event.key==='Enter'){addRule();}">
+      <button class="small-btn" onclick="addRule()">➕ যোগ করুন</button></div>`;
+  }
+  html += '</div>'; return html;
+}
+function addRule(){ const v=document.getElementById("newRule").value.trim(); if(v){rulesData.push(v);playTick();render();saveAppData();} }
+
+function renderAdmission(){
+  if(isAdmin){
+    return `<div class="panel"><div class="section-h">সদ্য জমা হওয়া আবেদনসমূহ</div>
+      <div class="item-row"><div style="flex:1">রাকিব — নূরানী বিভাগ</div><button class="small-btn" onclick="playTick()">Approve</button></div>
+      <div class="item-row"><div style="flex:1">সুমাইয়া — হিফজ বিভাগ</div><button class="small-btn" onclick="playTick()">Approve</button></div>
+    </div>`;
+  }
+  return `<div class="panel">
+    <div class="section-h">ছাত্রের তথ্য</div>
+    <div class="field"><label>ছাত্রের পূর্ণ নাম</label><input type="text"></div>
+    <div class="field"><label>ডাক নাম</label><input type="text"></div>
+    <div class="field"><label>বয়স</label><input type="number"></div>
+    <div class="field"><label>ছাত্রের পাসপোর্ট সাইজের ছবি</label><input type="file" accept="image/*"></div>
+    <div class="field"><label>জন্ম নিবন্ধন সনদ</label><input type="file" accept="image/*"></div>
+
+    <div class="section-h">পিতার তথ্য</div>
+    <div class="field"><label>পিতার নাম (জনাব)</label><input type="text"></div>
+    <div class="field"><label>পিতার ডাক নাম</label><input type="text"></div>
+    <div class="field"><label>পেশা</label><input type="text"></div>
+    <div class="field"><label>গ্রাম</label><input type="text"></div>
+
+    <div class="section-h">ঠিকানা</div>
+    <div class="field"><label>ইউনিয়ন</label><input type="text"></div>
+    <div class="field"><label>উপজেলা/থানা</label><input type="text"></div>
+    <div class="field"><label>জেলা</label><input type="text"></div>
+
+    <div class="section-h">অভিভাবকের তথ্য</div>
+    <div class="field"><label>বর্তমান অভিভাবকের নাম ও পূর্ণ ঠিকানা</label><textarea rows="2"></textarea></div>
+    <div class="field"><label>অভিভাবকের মোবাইল নম্বর</label><input type="text"></div>
+
+    <div class="section-h">ভর্তির ধরন</div>
+    <div class="field"><label>নতুন নাকি পুরাতন ছাত্র</label>
+      <select id="admType" onchange="toggleOldField()"><option value="new">নতুন ছাত্র</option><option value="old">পুরাতন ছাত্র</option></select>
+    </div>
+    <div class="field"><label>কোন জামাতে পড়তে ইচ্ছুক</label><input type="text"></div>
+    <div class="field" id="oldResultField" style="display:none;"><label>বিগত বাৎসরিক পরীক্ষার ফলাফল</label><input type="text"></div>
+
+    <button class="small-btn" style="width:100%;" onclick="playTick()">✅ আবেদন জমা দিন</button>
+  </div>`;
+}
+function toggleOldField(){
+  const v = document.getElementById("admType").value;
+  document.getElementById("oldResultField").style.display = v==="old" ? "block" : "none";
+}
+
+function renderSalary(){
+  let html = '<div class="panel">';
+  salaryList.forEach((s,i)=>{
+    if(isAdmin){
+      html += `<div class="item-row"><div style="flex:1">${esc(s.name)} — ${esc(s.month)}
+        ${s.status==="approved" ? `<div class="pay-status pay-approved">পরিশোধিত (${esc(s.date)})</div>` : `<div class="pay-status pay-pending">অপেক্ষমাণ</div>`}</div>
+        ${s.status!=="approved" ? `<button class="small-btn" onclick="approveSalary(${i})">Approve</button>` : ""}</div>`;
+    } else {
+      html += `<div class="item-row"><div style="flex:1">${esc(s.month)} মাসের বেতন
+        ${s.status==="approved" ? `<div class="pay-status pay-approved">পরিশোধিত (${esc(s.date)})</div>` : `<div class="pay-status pay-pending">অপেক্ষমাণ</div>`}</div>
+        ${s.status!=="approved" ? `<button class="small-btn" onclick="playTick()">পরিশোধ করুন</button>` : ""}</div>`;
+    }
+  });
+  html += '</div>'; return html;
+}
+function approveSalary(i){ salaryList[i].status="approved"; salaryList[i].date="আজকের তারিখ"; playTick(); render(); saveAppData(); }
+
+function renderComplaints(){
+  let html = '<div class="panel">';
+  if(isAdmin){
+    html += '<div class="section-h">প্রাপ্ত অভিযোগসমূহ</div>';
+    complaintsList.forEach(c=>{ html += `<div class="item-row"><div style="flex:1">${esc(c)}</div></div>`; });
+  } else {
+    html += `<div class="field"><label>আপনার অভিযোগ লিখুন</label><textarea rows="4" id="newComplaint"></textarea></div>
+      <button class="small-btn" onclick="addComplaint()">📩 জমা দিন</button>`;
+  }
+  html += '</div>'; return html;
+}
+function addComplaint(){ const v=document.getElementById("newComplaint").value.trim(); if(v){complaintsList.push(v);playTick();render();saveAppData();} }
+
+function renderTotal(){
+  let html = '<div class="panel">';
+  Object.keys(deptCounts).forEach(dep=>{
+    html += `<div class="item-row"><div style="flex:1">${esc(dep)} বিভাগে ছাত্র আছে
+      ${isAdmin ? `<input type="number" style="width:70px;display:inline-block;margin-left:6px;" value="${deptCounts[dep]}" onchange="updateDeptCount('${dep}', this.value)">` : `<b>${deptCounts[dep]}</b>`} জন</div></div>`;
+  });
+  html += '</div>'; return html;
+}
+
+function renderDept(){
+  let html = '<div class="panel">';
+  Object.keys(deptCounts).forEach(dep=>{ html += `<div class="item-row"><div style="flex:1">${esc(dep)} বিভাগ — ${deptCounts[dep]} জন ছাত্র</div></div>`; });
+  if(isAdmin){
+    html += `<div class="admin-box"><label class="section-h">নতুন বিভাগ যোগ করুন</label>
+      <input type="text" id="newDeptName" placeholder="বিভাগের নাম" onkeypress="if(event.key==='Enter'){addDept();}">
+      <input type="number" id="newDeptCount" placeholder="ছাত্র সংখ্যা" style="margin-top:6px;" onkeypress="if(event.key==='Enter'){addDept();}">
+      <button class="small-btn" onclick="addDept()">➕ যোগ করুন</button></div>`;
+  }
+  html += '</div>'; return html;
+}
+function updateDeptCount(dep, val){ deptCounts[dep]=val; playTick(); saveAppData(); }
+function addDept(){ const n=document.getElementById("newDeptName").value.trim(); const c=document.getElementById("newDeptCount").value||0;
+  if(n){deptCounts[n]=c;playTick();render();saveAppData();} }
+
+function renderNotice(){
+  if(isAdmin){
+    return `<div class="panel"><label class="section-h">নোটিশ সম্পাদনা করুন</label>
+      <textarea rows="7" id="noticeEdit">${esc(noticeText)}</textarea>
+      <button class="small-btn" onclick="saveNotice()">💾 সংরক্ষণ করুন</button></div>`;
+  }
+  return `<div class="panel"><div class="item-row" style="align-items:flex-start;"><div style="flex:1;white-space:pre-wrap;">${esc(noticeText)}</div></div></div>`;
+}
+function saveNotice(){ noticeText=document.getElementById("noticeEdit").value; playTick(); render(); saveAppData(); }
+
+function renderResult(){
+  let html = `<div class="panel">
+    <div class="field"><label>বিভাগ নির্বাচন করুন</label>
+      <select id="resultDeptSel" onchange="switchResultTab(this.value)">
+        <option value="" ${resultTab===""?"selected":""}>বিভাগ নির্বাচন করুন</option>
+        ${Object.keys(resultData).map(t=>`<option value="${t}" ${t===resultTab?"selected":""}>${t}</option>`).join("")}
+      </select>
+    </div>`;
+  if(!resultTab){
+    html += `<div style="text-align:center;padding:30px 10px;opacity:0.8;">অনুগ্রহ করে একটি বিভাগ নির্বাচন করুন</div></div>`;
+    return html;
+  }
+  html += `<div style="font-weight:900;margin-bottom:8px;">নির্বাচিত বিভাগ: ${resultTab}</div>
+    <div style="overflow-x:auto;"><table><thead><tr><th>নাম</th><th>তিলাওয়াত</th><th>তাজবিদ</th><th>মোট</th><th>স্থান</th>`;
+  if(isAdmin) html += '<th>সম্পাদনা</th>';
+  html += '</tr></thead><tbody>';
+  const rows = resultData[resultTab].map(r=>({...r,total:r.til+r.taj}));
+  const sorted = [...rows].sort((a,b)=>b.total-a.total);
+  sorted.forEach((r,idx)=>{
+    const rc = idx===0?"rank-1":idx===1?"rank-2":idx===2?"rank-3":"";
+    const suffix = idx===0?"ম":"য়";
+    html += `<tr><td>${esc(r.name)}</td><td>${r.til}</td><td>${r.taj}</td><td>${r.total}</td><td class="${rc}">${idx+1}${suffix}</td>`;
+    if(isAdmin) html += `<td><button class="small-btn" onclick="playTick()">✎</button></td>`;
+    html += `</tr>`;
+  });
+  html += '</tbody></table></div>';
+  if(isAdmin){
+    html += `<div class="admin-box"><label class="section-h">নতুন ছাত্রের নম্বর যোগ করুন (${resultTab})</label>
+      <input type="text" id="rName" placeholder="নাম" onkeypress="if(event.key==='Enter'){addResultRow();}">
+      <input type="number" id="rTil" placeholder="তিলাওয়াত নম্বর" style="margin-top:6px;" onkeypress="if(event.key==='Enter'){addResultRow();}">
+      <input type="number" id="rTaj" placeholder="তাজবিদ নম্বর" style="margin-top:6px;" onkeypress="if(event.key==='Enter'){addResultRow();}">
+      <button class="small-btn" onclick="addResultRow()">➕ যোগ করুন</button></div>`;
+  }
+  html += '</div>'; return html;
+}
+function switchResultTab(t){ resultTab=t; playTick(); render(); }
+function addResultRow(){
+  const name=document.getElementById("rName").value.trim();
+  const til=parseInt(document.getElementById("rTil").value)||0;
+  const taj=parseInt(document.getElementById("rTaj").value)||0;
+  if(name){ resultData[resultTab].push({name,til,taj}); playTick(); render(); saveAppData(); }
+}
+
+const screens = {
+  rules:{title:"নিয়ম কানুন",body:renderRules}, admission:{title:"ভর্তি আবেদন",body:renderAdmission},
+  salary:{title:"মাসিক বেতন",body:renderSalary}, complaints:{title:"অভিযোগ কেন্দ্র",body:renderComplaints},
+  total:{title:"মোট ছাত্র সংখ্যা",body:renderTotal}, dept:{title:"বিভাগীয় ছাত্র",body:renderDept},
+  notice:{title:"জরুরী নোটিশ",body:renderNotice}, result:{title:"পরীক্ষার ফলাফল",body:renderResult}
+};
+
+function openScreen(id){ playTick(); current=id; render(); }
+function goHome(){ playTick(); current="home"; render(); }
+
+function render(){
+  const content = document.getElementById("content");
+  if(current==="home"){
+    document.getElementById("titlePill").textContent = "হোম";
+    document.getElementById("backBtn").style.display = "none";
+    content.innerHTML = renderHome();
+  } else {
+    document.getElementById("titlePill").textContent = screens[current].title + (isAdmin ? " (এডমিন)" : "");
+    document.getElementById("backBtn").style.display = "flex";
+    content.innerHTML = screens[current].body();
+    if(current==="admission" && !isAdmin) toggleOldField();
+  }
+  document.getElementById("topHint").textContent = isAdmin
+    ? "এডমিন ভিউ — সম্পাদনা/অনুমোদনের অপশন দেখা যাচ্ছে"
+    : "ইউজার ভিউ — একজন ছাত্র/অভিভাবক যা দেখবে";
+}
+
+document.getElementById("backBtn").addEventListener("click", goHome);
+document.getElementById("modeSwitch").addEventListener("click", function(){
+  isAdmin = !isAdmin; this.classList.toggle("on", isAdmin); playTick(); render();
+});
+
+render();
+</script>
+</body>
+</html>
