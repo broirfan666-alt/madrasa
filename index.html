@@ -147,13 +147,6 @@ input[type=file]{width:100%;font-size:11.5px;color:var(--text-dark);background:v
 </div>
 
 <div class="wrap">
-  <div class="hint" id="topHint">টগল করে ইউজার/এডমিন ভিউ বদলান</div>
-  <div class="modebar">
-    <span>ইউজার</span>
-    <div class="switch" id="modeSwitch"><div class="knob"></div></div>
-    <span>এডমিন</span>
-  </div>
-
   <div class="phone">
     <div class="toolbar">
       <div class="avatar" id="avatarBtn" onclick="openModal('profileModal')">🕌</div>
@@ -175,10 +168,10 @@ input[type=file]{width:100%;font-size:11.5px;color:var(--text-dark);background:v
         <span class="closebtn" onclick="closeModal('profileModal')">✕</span>
         <h3>আমার প্রোফাইল</h3>
         <div class="profile-photo glass-pill" id="profilePhotoDisp">📷</div>
-        <div class="field"><label>নাম</label><input type="text" id="profName" value="মুহাম্মদ শিহাব"></div>
-        <div class="field"><label>ইমেইল / ফোন</label><input type="text" id="profContact" value="user@example.com" disabled></div>
+        <div class="field"><label>নাম</label><input type="text" id="profName"></div>
+        <div class="field"><label>ইমেইল / ফোন</label><input type="text" id="profContact" disabled></div>
         <div class="field"><label>নতুন পাসওয়ার্ড</label><input type="text" placeholder="পরিবর্তন করতে চাইলে লিখুন"></div>
-        <button class="small-btn glass-pill" onclick="playTick();closeModal('profileModal')">💾 সংরক্ষণ করুন</button>
+        <button class="small-btn glass-pill" onclick="saveProfile()">💾 সংরক্ষণ করুন</button>
       </div>
     </div>
 
@@ -222,6 +215,13 @@ input[type=file]{width:100%;font-size:11.5px;color:var(--text-dark);background:v
             <button class="tab-btn glass-pill" id="snd_off" onclick="setSoundMode('off')" style="flex:none;padding:7px 12px;">বন্ধ</button>
           </div>
         </div>
+
+        <div class="menu-item glass-pill" id="paymentSettingsBlock" style="flex-direction:column;align-items:flex-start;display:none;">
+          <span>💳 পেমেন্ট নাম্বার (এডমিন)</span>
+          <div class="field" style="width:100%;margin-top:8px;"><label>বিকাশ নাম্বার</label><input type="text" id="bkashNumInput" placeholder="যেমন: 01700000000"></div>
+          <div class="field" style="width:100%;"><label>নগদ নাম্বার</label><input type="text" id="nagadNumInput" placeholder="যেমন: 01800000000"></div>
+          <button class="small-btn" onclick="savePaymentNumbers()">💾 সংরক্ষণ করুন</button>
+        </div>
       </div>
     </div>
 
@@ -230,12 +230,7 @@ input[type=file]{width:100%;font-size:11.5px;color:var(--text-dark);background:v
       <div class="modal glass-pill">
         <span class="closebtn" onclick="closeModal('notifModal')">✕</span>
         <h3>নোটিফিকেশন</h3>
-        <div class="item-row" style="align-items:flex-start;"><div style="flex:1">আপনার ভর্তি আবেদন এডমিন অনুমোদন করেছেন
-          <div style="font-size:10.5px;opacity:0.7;margin-top:3px;">উৎস: ভর্তি আবেদন বিভাগ</div></div></div>
-        <div class="item-row" style="align-items:flex-start;"><div style="flex:1">এই মাসের বেতন Approve করা হয়েছে
-          <div style="font-size:10.5px;opacity:0.7;margin-top:3px;">উৎস: মাসিক বেতন বিভাগ</div></div></div>
-        <div class="item-row" style="align-items:flex-start;"><div style="flex:1">নতুন একটি জরুরী নোটিশ যুক্ত হয়েছে
-          <div style="font-size:10.5px;opacity:0.7;margin-top:3px;">উৎস: জরুরী নোটিশ বিভাগ</div></div></div>
+        <div id="notifListContainer"></div>
       </div>
     </div>
 
@@ -348,6 +343,7 @@ async function doAuth(){
 async function afterLogin(){
   setLoginError("");
   document.getElementById("loginScreen").style.display = "none";
+  await loadProfile();
   await loadAppData();
   render();
 }
@@ -355,6 +351,9 @@ async function afterLogin(){
 async function doLogout(){
   playTick(); closeModal("menuModal");
   await sb.auth.signOut();
+  currentUser = null;
+  profile = { display_name: "", is_admin: false };
+  isAdmin = false;
   document.getElementById("loginScreen").style.display = "flex";
 }
 
@@ -362,6 +361,38 @@ async function doLogout(){
 sb.auth.getSession().then(({data})=>{
   if(data && data.session){ afterLogin(); }
 });
+
+/* ---------- per-user profile (name + admin flag), stored in Supabase ---------- */
+let currentUser = null;
+let profile = { display_name: "", is_admin: false };
+
+async function loadProfile(){
+  try{
+    const { data: userData } = await sb.auth.getUser();
+    currentUser = userData.user;
+    if(!currentUser) return;
+    const loginIdentifier = currentUser.email || currentUser.phone || "";
+    const { data, error } = await sb.from("profiles").select("*").eq("id", currentUser.id).maybeSingle();
+    if(error) throw error;
+    if(data){
+      profile = { display_name: data.display_name || loginIdentifier, is_admin: !!data.is_admin };
+    } else {
+      profile = { display_name: loginIdentifier, is_admin: false };
+      await sb.from("profiles").upsert({ id: currentUser.id, display_name: profile.display_name, is_admin: false });
+    }
+    isAdmin = profile.is_admin;
+  }catch(e){ console.error("Supabase profile error:", e); }
+}
+
+function saveProfile(){
+  const newName = document.getElementById("profName").value.trim();
+  if(newName) profile.display_name = newName;
+  playTick(); closeModal('profileModal'); render();
+  if(currentUser){
+    sb.from("profiles").upsert({ id: currentUser.id, display_name: profile.display_name, is_admin: profile.is_admin })
+      .then(()=>{}, (e)=>console.error("Supabase profile save error:", e));
+  }
+}
 
 /* ---------- shared app data, synced to Supabase ---------- */
 async function loadAppData(){
@@ -375,6 +406,9 @@ async function loadAppData(){
       salaryList = data.salary_list ?? salaryList;
       complaintsList = data.complaints_list ?? complaintsList;
       resultData = data.result_data ?? resultData;
+      admissionList = data.admission_list ?? admissionList;
+      paymentNumbers = data.payment_numbers ?? paymentNumbers;
+      notifications = data.notifications ?? notifications;
     } else {
       await saveAppData();
     }
@@ -390,7 +424,10 @@ async function saveAppData(){
       dept_counts: deptCounts,
       salary_list: salaryList,
       complaints_list: complaintsList,
-      result_data: resultData
+      result_data: resultData,
+      admission_list: admissionList,
+      payment_numbers: paymentNumbers,
+      notifications: notifications
     });
   }catch(e){ console.error("Supabase save error:", e); }
 }
@@ -399,9 +436,63 @@ async function saveAppData(){
 function openModal(id){
   playTick();
   document.getElementById(id).classList.add("show");
-  if(id==="notifModal"){ const b=document.getElementById("notifBadge"); if(b) b.style.display="none"; }
+  if(id==="notifModal"){
+    renderNotifModal();
+    if(isAdmin){ notifications.forEach(n=>n.read=true); saveAppData(); }
+    updateNotifBadge();
+  }
+  if(id==="profileModal"){
+    document.getElementById("profName").value = profile.display_name || "";
+    document.getElementById("profContact").value = (currentUser && (currentUser.email || currentUser.phone)) || "";
+  }
+  if(id==="settingsModal"){
+    const block = document.getElementById("paymentSettingsBlock");
+    if(block){
+      block.style.display = isAdmin ? "flex" : "none";
+      if(isAdmin){
+        document.getElementById("bkashNumInput").value = paymentNumbers.bkash || "";
+        document.getElementById("nagadNumInput").value = paymentNumbers.nagad || "";
+      }
+    }
+  }
 }
 function closeModal(id){ document.getElementById(id).classList.remove("show"); }
+
+function renderNotifModal(){
+  const container = document.getElementById("notifListContainer");
+  if(!container) return;
+  let html = "";
+  if(isAdmin){
+    if(notifications.length===0){
+      html = `<div style="text-align:center;opacity:0.7;padding:14px;">কোনো নোটিফিকেশন নেই</div>`;
+    } else {
+      [...notifications].reverse().forEach(n=>{
+        html += `<div class="item-row" style="align-items:flex-start;"><div style="flex:1">${esc(n.text)}</div></div>`;
+      });
+    }
+  } else {
+    html = `<div class="item-row" style="align-items:flex-start;"><div style="flex:1">আপনার পাঠানো পেমেন্ট এডমিন যাচাই করলে এখানে আপডেট দেখা যাবে।</div></div>`;
+  }
+  container.innerHTML = html;
+}
+
+function updateNotifBadge(){
+  const b = document.getElementById("notifBadge");
+  if(!b) return;
+  const n = isAdmin ? notifications.filter(x=>!x.read).length : 0;
+  if(n>0){ b.textContent = n; b.style.display="flex"; } else { b.style.display="none"; }
+}
+
+function addNotification(text){
+  notifications.push({ id: Date.now(), text, read:false });
+  saveAppData();
+}
+
+function savePaymentNumbers(){
+  paymentNumbers.bkash = document.getElementById("bkashNumInput").value.trim();
+  paymentNumbers.nagad = document.getElementById("nagadNumInput").value.trim();
+  playTick(); saveAppData();
+}
 
 /* ---------- dark mode ---------- */
 function toggleDark(){
@@ -415,6 +506,11 @@ function setAccent(c){ document.documentElement.style.setProperty('--accent', c)
 /* ---------- state ---------- */
 let isAdmin = false;
 let current = "home";
+let admissionList = [];
+let paymentNumbers = { bkash: "", nagad: "" };
+let notifications = [];
+let paymentUI = { type: null, index: null, method: null };
+let admissionDraft = null;
 const menu = [
   {id:"rules", icon:"📜", label:"নিয়ম কানুন"},
   {id:"admission", icon:"📝", label:"ভর্তি আবেদন"},
@@ -483,14 +579,27 @@ function addRule(){ const v=document.getElementById("newRule").value.trim(); if(
 
 function renderAdmission(){
   if(isAdmin){
-    return `<div class="panel"><div class="section-h">সদ্য জমা হওয়া আবেদনসমূহ</div>
-      <div class="item-row"><div style="flex:1">রাকিব — নূরানী বিভাগ</div><button class="small-btn" onclick="playTick()">Approve</button></div>
-      <div class="item-row"><div style="flex:1">সুমাইয়া — হিফজ বিভাগ</div><button class="small-btn" onclick="playTick()">Approve</button></div>
-    </div>`;
+    let html = '<div class="panel"><div class="section-h">সদ্য জমা হওয়া আবেদনসমূহ</div>';
+    if(admissionList.length===0){
+      html += `<div style="text-align:center;opacity:0.7;padding:20px;">কোনো আবেদন জমা পড়েনি</div>`;
+    }
+    admissionList.forEach((a,i)=>{
+      html += `<div class="item-row" style="flex-direction:column;align-items:stretch;">
+        <div style="font-weight:800;">${esc(a.name)}${a.targetClass ? " — "+esc(a.targetClass) : ""}</div>
+        <div style="font-size:11.5px;opacity:0.8;">অভিভাবকের নম্বর: ${esc(a.guardianPhone || '-')}</div>`;
+      if(a.status==="submitted"){
+        html += `<div class="pay-status pay-pending">ভর্তি ফি: ${methodLabel(a.paymentMethod)} — যাচাই প্রয়োজন</div>
+          <div style="display:flex;gap:6px;margin-top:6px;"><button class="small-btn" onclick="confirmAdmission(${i})">✅ নিশ্চিত করুন</button><button class="small-btn" onclick="rejectAdmission(${i})">✕ বাতিল</button></div>`;
+      } else if(a.status==="approved"){
+        html += `<div class="pay-status pay-approved">অনুমোদিত ✔</div>`;
+      }
+      html += `</div>`;
+    });
+    html += '</div>'; return html;
   }
-  return `<div class="panel">
+  let html = `<div class="panel">
     <div class="section-h">ছাত্রের তথ্য</div>
-    <div class="field"><label>ছাত্রের পূর্ণ নাম</label><input type="text"></div>
+    <div class="field"><label>ছাত্রের পূর্ণ নাম</label><input type="text" id="studentName"></div>
     <div class="field"><label>ডাক নাম</label><input type="text"></div>
     <div class="field"><label>বয়স</label><input type="number"></div>
     <div class="field"><label>ছাত্রের পাসপোর্ট সাইজের ছবি</label><input type="file" accept="image/*"></div>
@@ -509,17 +618,32 @@ function renderAdmission(){
 
     <div class="section-h">অভিভাবকের তথ্য</div>
     <div class="field"><label>বর্তমান অভিভাবকের নাম ও পূর্ণ ঠিকানা</label><textarea rows="2"></textarea></div>
-    <div class="field"><label>অভিভাবকের মোবাইল নম্বর</label><input type="text"></div>
+    <div class="field"><label>অভিভাবকের মোবাইল নম্বর</label><input type="text" id="guardianPhone"></div>
 
     <div class="section-h">ভর্তির ধরন</div>
     <div class="field"><label>নতুন নাকি পুরাতন ছাত্র</label>
       <select id="admType" onchange="toggleOldField()"><option value="new">নতুন ছাত্র</option><option value="old">পুরাতন ছাত্র</option></select>
     </div>
-    <div class="field"><label>কোন জামাতে পড়তে ইচ্ছুক</label><input type="text"></div>
+    <div class="field"><label>কোন জামাতে পড়তে ইচ্ছুক</label><input type="text" id="targetClass"></div>
     <div class="field" id="oldResultField" style="display:none;"><label>বিগত বাৎসরিক পরীক্ষার ফলাফল</label><input type="text"></div>
-
-    <button class="small-btn" style="width:100%;" onclick="playTick()">✅ আবেদন জমা দিন</button>
-  </div>`;
+`;
+  if(paymentUI.type==='admission'){
+    html += renderPaymentPicker('admission', 'draft');
+  } else {
+    html += `<button class="small-btn" style="width:100%;" onclick="submitAdmission()">✅ ভর্তি ফি জমা দিন</button>`;
+  }
+  html += `</div>`;
+  return html;
+}
+function submitAdmission(){
+  const name = document.getElementById("studentName").value.trim();
+  const guardianPhone = document.getElementById("guardianPhone").value.trim();
+  const targetClass = document.getElementById("targetClass").value.trim();
+  if(!name){ alert("ছাত্রের পূর্ণ নাম দিন।"); return; }
+  playTick();
+  admissionDraft = { name, guardianPhone, targetClass };
+  paymentUI = { type:'admission', index:'draft', method:null };
+  render();
 }
 function toggleOldField(){
   const v = document.getElementById("admType").value;
@@ -530,18 +654,99 @@ function renderSalary(){
   let html = '<div class="panel">';
   salaryList.forEach((s,i)=>{
     if(isAdmin){
-      html += `<div class="item-row"><div style="flex:1">${esc(s.name)} — ${esc(s.month)}
-        ${s.status==="approved" ? `<div class="pay-status pay-approved">পরিশোধিত (${esc(s.date)})</div>` : `<div class="pay-status pay-pending">অপেক্ষমাণ</div>`}</div>
-        ${s.status!=="approved" ? `<button class="small-btn" onclick="approveSalary(${i})">Approve</button>` : ""}</div>`;
+      let statusHtml;
+      if(s.status==="approved") statusHtml = `<div class="pay-status pay-approved">পরিশোধিত (${esc(s.date)})</div>`;
+      else if(s.status==="submitted") statusHtml = `<div class="pay-status pay-pending">পেমেন্ট পাঠানো হয়েছে (${methodLabel(s.method)}) — যাচাই প্রয়োজন</div>`;
+      else statusHtml = `<div class="pay-status pay-pending">অপেক্ষমাণ</div>`;
+      html += `<div class="item-row" style="flex-direction:column;align-items:stretch;">
+        <div style="display:flex;justify-content:space-between;gap:8px;"><div style="flex:1">${esc(s.name)} — ${esc(s.month)}</div></div>
+        ${statusHtml}`;
+      if(s.status==="submitted"){
+        html += `<div style="display:flex;gap:6px;margin-top:6px;"><button class="small-btn" onclick="confirmSalaryPayment(${i})">✅ নিশ্চিত করুন</button><button class="small-btn" onclick="rejectSalaryPayment(${i})">✕ বাতিল</button></div>`;
+      } else if(s.status!=="approved"){
+        html += `<button class="small-btn" onclick="approveSalary(${i})">Approve</button>`;
+      }
+      html += `</div>`;
     } else {
-      html += `<div class="item-row"><div style="flex:1">${esc(s.month)} মাসের বেতন
-        ${s.status==="approved" ? `<div class="pay-status pay-approved">পরিশোধিত (${esc(s.date)})</div>` : `<div class="pay-status pay-pending">অপেক্ষমাণ</div>`}</div>
-        ${s.status!=="approved" ? `<button class="small-btn" onclick="playTick()">পরিশোধ করুন</button>` : ""}</div>`;
+      html += `<div class="item-row" style="flex-direction:column;align-items:stretch;">
+        <div style="display:flex;justify-content:space-between;gap:8px;"><div style="flex:1">${esc(s.month)} মাসের বেতন</div></div>`;
+      if(s.status==="approved"){
+        html += `<div class="pay-status pay-approved">পরিশোধিত (${esc(s.date)})</div>`;
+      } else if(s.status==="submitted"){
+        html += `<div class="pay-status pay-pending">জমা দেওয়া হয়েছে (অনুমোদনের অপেক্ষায়)</div>`;
+      } else if(paymentUI.type==='salary' && paymentUI.index===i){
+        html += renderPaymentPicker('salary', i);
+      } else {
+        html += `<button class="small-btn" onclick="startPayment('salary', ${i})">মাসিক বেতন দিন</button>`;
+      }
+      html += `</div>`;
     }
   });
   html += '</div>'; return html;
 }
 function approveSalary(i){ salaryList[i].status="approved"; salaryList[i].date="আজকের তারিখ"; playTick(); render(); saveAppData(); }
+function confirmSalaryPayment(i){ salaryList[i].status="approved"; salaryList[i].date="আজকের তারিখ"; playTick(); render(); saveAppData(); }
+function rejectSalaryPayment(i){ salaryList[i].status="pending"; salaryList[i].method=null; playTick(); render(); saveAppData(); }
+
+function confirmAdmission(i){ admissionList[i].status="approved"; playTick(); render(); saveAppData(); }
+function rejectAdmission(i){ admissionList[i].status="pending"; admissionList[i].paymentMethod=null; playTick(); render(); saveAppData(); }
+
+function methodLabel(m){ return m==='bkash' ? 'বিকাশ' : m==='nagad' ? 'নগদ' : ''; }
+
+function startPayment(type,index){ paymentUI = {type, index, method:null}; playTick(); render(); }
+function choosePaymentMethod(m){ paymentUI.method = m; playTick(); render(); }
+function cancelPayment(){ paymentUI = {type:null,index:null,method:null}; playTick(); render(); }
+
+function renderPaymentPicker(type, index){
+  if(!paymentUI.method){
+    return `<div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="small-btn" onclick="choosePaymentMethod('bkash')">📱 বিকাশ</button>
+      <button class="small-btn" onclick="choosePaymentMethod('nagad')">📱 নগদ</button>
+      <button class="small-btn" onclick="cancelPayment()">✕ বাতিল</button>
+    </div>`;
+  }
+  const num = paymentUI.method==='bkash' ? (paymentNumbers.bkash || "সেট করা হয়নি") : (paymentNumbers.nagad || "সেট করা হয়নি");
+  return `<div style="margin-top:8px;padding:8px;border-radius:10px;background:rgba(255,255,255,0.12);">
+    <div style="font-weight:800;">${methodLabel(paymentUI.method)} নাম্বারে পাঠান:</div>
+    <div style="font-size:15px;font-weight:900;margin-top:2px;">${esc(num)}</div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="small-btn" onclick="confirmSent('${type}', '${index}')">✅ পাঠিয়েছি</button>
+      <button class="small-btn" onclick="cancelPayment()">✕ বাতিল</button>
+    </div>
+  </div>`;
+}
+
+async function confirmSent(type, index){
+  playTick();
+  if(type==='salary'){
+    const i = parseInt(index);
+    salaryList[i].status = "submitted";
+    salaryList[i].method = paymentUI.method;
+    addNotification(`${salaryList[i].name} — ${salaryList[i].month} মাসের বেতন (${methodLabel(paymentUI.method)}) পাঠিয়েছেন, যাচাই প্রয়োজন`);
+  } else if(type==='admission' && admissionDraft){
+    admissionList.push({ ...admissionDraft, paymentMethod: paymentUI.method, status:"submitted" });
+    addNotification(`${admissionDraft.name} — ভর্তি ফি (${methodLabel(paymentUI.method)}) পাঠিয়েছেন, যাচাই প্রয়োজন`);
+    admissionDraft = null;
+  }
+  paymentUI = {type:null,index:null,method:null};
+  render();
+  saveAppData();
+}
+
+function editResultRow(tab, idx){
+  const arr = resultData[tab];
+  const item = arr[idx];
+  const newName = prompt("নাম", item.name);
+  if(newName === null || !newName.trim()) return;
+  const tilInput = prompt("তিলাওয়াত নম্বর", item.til);
+  if(tilInput === null) return;
+  const tajInput = prompt("তাজবিদ নম্বর", item.taj);
+  if(tajInput === null) return;
+  const til = parseInt(tilInput); const taj = parseInt(tajInput);
+  if(isNaN(til) || isNaN(taj)) return;
+  arr[idx] = { name:newName.trim(), til, taj };
+  playTick(); render(); saveAppData();
+}
 
 function renderComplaints(){
   let html = '<div class="panel">';
@@ -606,13 +811,13 @@ function renderResult(){
     <div style="overflow-x:auto;"><table><thead><tr><th>নাম</th><th>তিলাওয়াত</th><th>তাজবিদ</th><th>মোট</th><th>স্থান</th>`;
   if(isAdmin) html += '<th>সম্পাদনা</th>';
   html += '</tr></thead><tbody>';
-  const rows = resultData[resultTab].map(r=>({...r,total:r.til+r.taj}));
+  const rows = resultData[resultTab].map((r,i)=>({...r,total:r.til+r.taj,origIdx:i}));
   const sorted = [...rows].sort((a,b)=>b.total-a.total);
   sorted.forEach((r,idx)=>{
     const rc = idx===0?"rank-1":idx===1?"rank-2":idx===2?"rank-3":"";
     const suffix = idx===0?"ম":"য়";
     html += `<tr><td>${esc(r.name)}</td><td>${r.til}</td><td>${r.taj}</td><td>${r.total}</td><td class="${rc}">${idx+1}${suffix}</td>`;
-    if(isAdmin) html += `<td><button class="small-btn" onclick="playTick()">✎</button></td>`;
+    if(isAdmin) html += `<td><button class="small-btn" onclick="editResultRow('${resultTab}', ${r.origIdx})">✎</button></td>`;
     html += `</tr>`;
   });
   html += '</tbody></table></div>';
@@ -655,15 +860,10 @@ function render(){
     content.innerHTML = screens[current].body();
     if(current==="admission" && !isAdmin) toggleOldField();
   }
-  document.getElementById("topHint").textContent = isAdmin
-    ? "এডমিন ভিউ — সম্পাদনা/অনুমোদনের অপশন দেখা যাচ্ছে"
-    : "ইউজার ভিউ — একজন ছাত্র/অভিভাবক যা দেখবে";
+  updateNotifBadge();
 }
 
 document.getElementById("backBtn").addEventListener("click", goHome);
-document.getElementById("modeSwitch").addEventListener("click", function(){
-  isAdmin = !isAdmin; this.classList.toggle("on", isAdmin); playTick(); render();
-});
 
 render();
 </script>
