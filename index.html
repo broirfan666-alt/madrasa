@@ -167,9 +167,7 @@ input[type=file]{width:100%;font-size:11.5px;color:var(--text-dark);background:v
       <div class="modal glass-pill">
         <span class="closebtn" onclick="closeModal('profileModal')">✕</span>
         <h3>আমার প্রোফাইল</h3>
-        <div class="profile-photo glass-pill" id="profilePhotoDisp" onclick="document.getElementById('avatarFileInput').click()">📷</div>
-        <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="uploadAvatar(this.files[0])">
-        <div style="text-align:center;font-size:11px;opacity:0.75;margin:-4px 0 10px;">ছবিতে ক্লিক করে প্রোফাইল ছবি পরিবর্তন করুন</div>
+        <div class="profile-photo glass-pill" id="profilePhotoDisp">📷</div>
         <div class="field"><label>নাম</label><input type="text" id="profName"></div>
         <div class="field"><label>ইমেইল / ফোন</label><input type="text" id="profContact" disabled></div>
         <div class="field"><label>নতুন পাসওয়ার্ড</label><input type="text" placeholder="পরিবর্তন করতে চাইলে লিখুন"></div>
@@ -224,6 +222,16 @@ input[type=file]{width:100%;font-size:11.5px;color:var(--text-dark);background:v
           <div class="field" style="width:100%;"><label>নগদ নাম্বার</label><input type="text" id="nagadNumInput" placeholder="যেমন: 01800000000"></div>
           <button class="small-btn" onclick="savePaymentNumbers()">💾 সংরক্ষণ করুন</button>
         </div>
+
+        <div class="menu-item glass-pill" id="adminManageBlock" style="flex-direction:column;align-items:flex-start;display:none;">
+          <span>👤 এডমিন নিয়ন্ত্রণ (এডমিন)</span>
+          <div class="field" style="width:100%;margin-top:8px;"><label>ইউজারের ইমেইল</label><input type="text" id="makeAdminEmail" placeholder="user@example.com"></div>
+          <div style="display:flex;gap:8px;width:100%;">
+            <button class="small-btn" style="flex:1;" onclick="setAdminByEmail(true)">✅ এডমিন বানান</button>
+            <button class="small-btn" style="flex:1;" onclick="setAdminByEmail(false)">✕ এডমিন বাতিল</button>
+          </div>
+          <div style="font-size:11px;opacity:0.75;margin-top:6px;">শুধু যারা অন্তত একবার অ্যাপে লগইন/সাইনআপ করেছে তাদেরই এডমিন বানানো যাবে।</div>
+        </div>
       </div>
     </div>
 
@@ -242,9 +250,15 @@ input[type=file]{width:100%;font-size:11.5px;color:var(--text-dark);background:v
         <span class="closebtn" onclick="closeModal('helpModal')">✕</span>
         <h3>হেল্প কাউন্টার</h3>
         <div class="help-icons">
-          <div class="glass-pill" onclick="playTick()">🟢</div>
-          <div class="glass-pill" onclick="playTick()">🔵</div>
-          <div class="glass-pill" onclick="playTick()">📞</div>
+          <div class="glass-pill" onclick="playTick()" style="background:#25D366;">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.35 5.07L2 22l5.07-1.32A9.96 9.96 0 0 0 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm5.2 14.2c-.22.62-1.28 1.18-1.77 1.24-.45.06-.99.09-1.6-.1-.37-.11-.85-.27-1.46-.53-2.57-1.11-4.24-3.7-4.37-3.87-.13-.17-1.05-1.4-1.05-2.67 0-1.27.67-1.89.9-2.15.24-.26.52-.32.7-.32h.5c.16 0 .38-.06.6.46.22.53.75 1.83.82 1.96.07.13.11.29.02.46-.09.17-.13.28-.26.43-.13.15-.27.34-.39.46-.13.13-.26.27-.11.53.15.26.68 1.12 1.46 1.82 1 .9 1.85 1.18 2.11 1.31.26.13.41.11.56-.07.15-.17.63-.73.8-.99.17-.26.34-.21.57-.13.23.09 1.47.69 1.72.81.26.13.43.19.49.3.06.11.06.63-.15 1.25z"/></svg>
+          </div>
+          <div class="glass-pill" onclick="playTick()" style="background:#12c1e0;">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="#fff"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+          </div>
+          <div class="glass-pill" onclick="playTick()" style="background:#4a90e2;">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.61 21 3 13.39 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.24.2 2.45.57 3.57a1 1 0 0 1-.25 1.02l-2.2 2.2z"/></svg>
+          </div>
         </div>
         <p style="text-align:center;font-size:12px;margin-top:8px;">WhatsApp · Imo · কল করুন</p>
       </div>
@@ -347,7 +361,6 @@ async function afterLogin(){
   document.getElementById("loginScreen").style.display = "none";
   await loadProfile();
   await loadAppData();
-  updateAvatarDisplays();
   render();
 }
 
@@ -355,9 +368,8 @@ async function doLogout(){
   playTick(); closeModal("menuModal");
   await sb.auth.signOut();
   currentUser = null;
-  profile = { display_name: "", is_admin: false, avatar_url: null };
+  profile = { display_name: "", is_admin: false };
   isAdmin = false;
-  updateAvatarDisplays();
   document.getElementById("loginScreen").style.display = "flex";
 }
 
@@ -368,7 +380,7 @@ sb.auth.getSession().then(({data})=>{
 
 /* ---------- per-user profile (name + admin flag), stored in Supabase ---------- */
 let currentUser = null;
-let profile = { display_name: "", is_admin: false, avatar_url: null };
+let profile = { display_name: "", is_admin: false };
 
 async function loadProfile(){
   try{
@@ -379,13 +391,27 @@ async function loadProfile(){
     const { data, error } = await sb.from("profiles").select("*").eq("id", currentUser.id).maybeSingle();
     if(error) throw error;
     if(data){
-      profile = { display_name: data.display_name || loginIdentifier, is_admin: !!data.is_admin, avatar_url: data.avatar_url || null };
+      profile = { display_name: data.display_name || loginIdentifier, is_admin: !!data.is_admin };
+      if(!data.email && loginIdentifier){
+        sb.from("profiles").update({ email: loginIdentifier }).eq("id", currentUser.id).then(()=>{},()=>{});
+      }
     } else {
-      profile = { display_name: loginIdentifier, is_admin: false, avatar_url: null };
-      await sb.from("profiles").upsert({ id: currentUser.id, display_name: profile.display_name, is_admin: false });
+      profile = { display_name: loginIdentifier, is_admin: false };
+      await sb.from("profiles").upsert({ id: currentUser.id, display_name: profile.display_name, email: loginIdentifier, is_admin: false });
     }
     isAdmin = profile.is_admin;
   }catch(e){ console.error("Supabase profile error:", e); }
+}
+
+async function setAdminByEmail(makeAdmin){
+  const email = document.getElementById("makeAdminEmail").value.trim();
+  if(!email){ alert("ইমেইল দিন।"); return; }
+  const { data, error } = await sb.from("profiles").update({ is_admin: makeAdmin }).eq("email", email).select();
+  if(error){ alert("সমস্যা হয়েছে: " + error.message); return; }
+  if(!data || data.length===0){ alert("এই ইমেইল দিয়ে কেউ অ্যাপে লগইন করেনি এখনো। আগে তাকে সাইনআপ/লগইন করতে বলুন, তারপর আবার চেষ্টা করুন।"); return; }
+  playTick();
+  alert(makeAdmin ? "সফলভাবে এডমিন করা হয়েছে।" : "এডমিন অধিকার বাতিল করা হয়েছে।");
+  document.getElementById("makeAdminEmail").value = "";
 }
 
 function saveProfile(){
@@ -393,39 +419,8 @@ function saveProfile(){
   if(newName) profile.display_name = newName;
   playTick(); closeModal('profileModal'); render();
   if(currentUser){
-    sb.from("profiles").upsert({ id: currentUser.id, display_name: profile.display_name, is_admin: profile.is_admin, avatar_url: profile.avatar_url })
+    sb.from("profiles").upsert({ id: currentUser.id, display_name: profile.display_name, is_admin: profile.is_admin })
       .then(()=>{}, (e)=>console.error("Supabase profile save error:", e));
-  }
-}
-
-/* ---------- profile photo upload ---------- */
-async function uploadAvatar(file){
-  if(!file || !currentUser) return;
-  try{
-    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-    const path = `${currentUser.id}/avatar.${ext}`;
-    const { error: upErr } = await sb.storage.from('avatars').upload(path, file, { upsert: true, contentType: file.type });
-    if(upErr) throw upErr;
-    const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path);
-    profile.avatar_url = urlData.publicUrl + `?t=${Date.now()}`;
-    await sb.from('profiles').upsert({ id: currentUser.id, display_name: profile.display_name, is_admin: profile.is_admin, avatar_url: profile.avatar_url });
-    updateAvatarDisplays();
-    playTick();
-  }catch(e){
-    console.error("Avatar upload error:", e);
-    alert("ছবি আপলোড করা যায়নি। ইন্টারনেট সংযোগ চেক করুন অথবা পরে আবার চেষ্টা করুন।");
-  }
-}
-function updateAvatarDisplays(){
-  const url = profile.avatar_url;
-  const disp = document.getElementById('profilePhotoDisp');
-  const btn = document.getElementById('avatarBtn');
-  if(url){
-    if(disp) disp.innerHTML = `<img src="${url}" alt="profile">`;
-    if(btn) btn.innerHTML = `<img src="${url}" alt="profile">`;
-  } else {
-    if(disp) disp.innerHTML = '📷';
-    if(btn) btn.innerHTML = '🕌';
   }
 }
 
@@ -479,7 +474,6 @@ function openModal(id){
   if(id==="profileModal"){
     document.getElementById("profName").value = profile.display_name || "";
     document.getElementById("profContact").value = (currentUser && (currentUser.email || currentUser.phone)) || "";
-    updateAvatarDisplays();
   }
   if(id==="settingsModal"){
     const block = document.getElementById("paymentSettingsBlock");
@@ -490,6 +484,8 @@ function openModal(id){
         document.getElementById("nagadNumInput").value = paymentNumbers.nagad || "";
       }
     }
+    const adminBlock = document.getElementById("adminManageBlock");
+    if(adminBlock) adminBlock.style.display = isAdmin ? "flex" : "none";
   }
 }
 function closeModal(id){ document.getElementById(id).classList.remove("show"); }
@@ -626,10 +622,11 @@ function renderAdmission(){
       if(a.status==="submitted"){
         html += `<div class="pay-status pay-pending">ভর্তি ফি: ${methodLabel(a.paymentMethod)} — যাচাই প্রয়োজন</div>
           <div style="display:flex;gap:6px;margin-top:6px;"><button class="small-btn" onclick="confirmAdmission(${i})">✅ নিশ্চিত করুন</button><button class="small-btn" onclick="rejectAdmission(${i})">✕ বাতিল</button></div>`;
-      } else if(a.status==="form_only"){
-        html += `<div class="pay-status pay-pending">শুধু ফরম জমা হয়েছে — ভর্তি ফি বাকি (গ্রহণযোগ্য নয়)</div>`;
       } else if(a.status==="approved"){
         html += `<div class="pay-status pay-approved">অনুমোদিত ✔</div>`;
+      } else {
+        html += `<div class="pay-status pay-pending">ভর্তি ফি এখনো জমা হয়নি</div>
+          <button class="small-btn" style="margin-top:6px;" onclick="confirmAdmission(${i})">✅ ফি ছাড়াই Approve করুন</button>`;
       }
       html += `</div>`;
     });
@@ -669,36 +666,33 @@ function renderAdmission(){
     html += renderPaymentPicker('admission', 'draft');
   } else {
     html += `<div style="display:flex;gap:8px;">
-      <button class="small-btn" style="flex:1;" onclick="submitAdmission()">💳 ফি থেকে জমা দিন</button>
-      <button class="small-btn" style="flex:1;" onclick="submitAdmissionFormOnly()">📝 ফরম জমা দিন</button>
+      <button class="small-btn" style="flex:1;" onclick="submitAdmissionFormOnly()">📄 ফরম জমা দিন</button>
+      <button class="small-btn" style="flex:1;" onclick="submitAdmission()">✅ ফি জমা দিন</button>
     </div>`;
   }
   html += `</div>`;
   return html;
 }
-function readAdmissionFormFields(){
+function submitAdmissionFormOnly(){
   const name = document.getElementById("studentName").value.trim();
   const guardianPhone = document.getElementById("guardianPhone").value.trim();
   const targetClass = document.getElementById("targetClass").value.trim();
-  return { name, guardianPhone, targetClass };
+  if(!name){ alert("ছাত্রের পূর্ণ নাম দিন।"); return; }
+  playTick();
+  admissionList.push({ name, guardianPhone, targetClass, status:"pending" });
+  saveAppData();
+  alert("আপনার আবেদন জমা হয়েছে। ভর্তি ফি আদায় করার আগ পর্যন্ত আপনার আবেদনটি অনুমোদন করা হবে না।");
+  render();
 }
 function submitAdmission(){
-  const { name, guardianPhone, targetClass } = readAdmissionFormFields();
+  const name = document.getElementById("studentName").value.trim();
+  const guardianPhone = document.getElementById("guardianPhone").value.trim();
+  const targetClass = document.getElementById("targetClass").value.trim();
   if(!name){ alert("ছাত্রের পূর্ণ নাম দিন।"); return; }
   playTick();
   admissionDraft = { name, guardianPhone, targetClass };
   paymentUI = { type:'admission', index:'draft', method:null };
   render();
-}
-function submitAdmissionFormOnly(){
-  const { name, guardianPhone, targetClass } = readAdmissionFormFields();
-  if(!name){ alert("ছাত্রের পূর্ণ নাম দিন।"); return; }
-  playTick();
-  admissionList.push({ name, guardianPhone, targetClass, paymentMethod:null, status:"form_only" });
-  addNotification(`${name} — শুধু ফরম জমা দিয়েছেন, ভর্তি ফি বাকি`);
-  render();
-  saveAppData();
-  alert("ফি জমা দেওয়ার আগ পর্যন্ত আপনার আবেদনটিকে গ্রহণ করা হবে না।");
 }
 function toggleOldField(){
   const v = document.getElementById("admType").value;
