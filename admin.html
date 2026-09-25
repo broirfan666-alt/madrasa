@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>হামিদুল উলূম মাদ্রাসা - ডেমো</title>
+<title>হামিদুল উলূম মাদ্রাসা - এডমিন</title>
 <style>
 :root{
   --bg1:#a9b98a; --bg2:#c3cf9f; --text-dark:#141414; --panel-bg:rgba(120,125,90,0.5);
@@ -344,8 +344,15 @@ async function doAuth(){
 
 async function afterLogin(){
   setLoginError("");
-  document.getElementById("loginScreen").style.display = "none";
   await loadProfile();
+  if(!profile.is_admin){
+    setLoginError("এই অ্যাপে প্রবেশের অনুমতি নেই — এটি শুধুমাত্র এডমিনদের জন্য।");
+    await sb.auth.signOut();
+    currentUser = null;
+    profile = { display_name: "", is_admin: false, avatar_url: null };
+    return;
+  }
+  document.getElementById("loginScreen").style.display = "none";
   await loadAppData();
   updateAvatarDisplays();
   render();
