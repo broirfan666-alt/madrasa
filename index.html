@@ -400,7 +400,7 @@ async function loadProfile(){
       await sb.from("profiles").upsert({ id: currentUser.id, display_name: profile.display_name, email: loginIdentifier, is_admin: false });
     }
     isAdmin = profile.is_admin;
-  }catch(e){ console.error("Supabase profile error:", e); }
+  }catch(e){ console.error("Supabase profile error:", e); alert("প্রোফাইল লোড/তৈরিতে সমস্যা: " + (e && e.message ? e.message : JSON.stringify(e))); }
 }
 
 async function setAdminByEmail(makeAdmin){
